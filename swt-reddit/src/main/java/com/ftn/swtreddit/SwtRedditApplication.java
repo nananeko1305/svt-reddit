@@ -8,6 +8,7 @@ public class SwtRedditApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SwtRedditApplication.class, args);
+		System.out.println("Hello World");
 	}
 
 }
