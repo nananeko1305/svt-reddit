@@ -1,10 +1,10 @@
-package com.ftn.swtreddit;
+package com.ftn.redditClone;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SwtRedditApplicationTests {
+class RedditCloneApplicationTests {
 
 	@Test
 	void contextLoads() {
