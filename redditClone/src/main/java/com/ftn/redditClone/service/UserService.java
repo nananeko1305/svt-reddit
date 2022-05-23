@@ -14,8 +14,12 @@ public interface UserService {
 	
 	public void save(User user);
 	
-	public void deleteById(Integer id);
+	public void deleteById(int id);
 	
-	public User findById(Integer id);
+	public User findById(int id);
+	
+	public void changePassword(int id);
+	
+	public User findByUsername(String username);
 	
 }

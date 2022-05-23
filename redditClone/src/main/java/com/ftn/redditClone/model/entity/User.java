@@ -2,10 +2,18 @@ package com.ftn.redditClone.model.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.aspectj.weaver.tools.Trace;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,11 +31,16 @@ import java.time.LocalDate;
 public class User {
 
     @Id
-    @Column(name = "id", unique = true, nullable = false)
-    private long id;
+    @Column(name = "id", unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
     
     @Column(name = "username", unique = true, nullable = false)
     private String username;
+    
+//    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role")
+    private Role role;
     
     @Column(name = "password", nullable = false)
     private String password;
@@ -46,8 +59,22 @@ public class User {
     
     @Column(name = "displayName", nullable = false)
     private String displayName;
+    
 
+
+	public User(String username, Role role, String password, String email, String avatar, LocalDate registrationDate,
+			String description, String displayName) {
+		super();
+		this.username = username;
+		this.role = role;
+		this.password = password;
+		this.email = email;
+		this.avatar = avatar;
+		this.registrationDate = registrationDate;
+		this.description = description;
+		this.displayName = displayName;
+	}
+ 
     
     
-    	
 }

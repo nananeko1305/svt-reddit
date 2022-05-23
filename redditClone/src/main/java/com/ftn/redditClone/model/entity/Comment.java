@@ -1,6 +1,4 @@
 package com.ftn.redditClone.model.entity;
-
-import java.io.Serializable;
 import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
