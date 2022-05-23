@@ -1,15 +1,14 @@
 package com.ftn.redditClone.model.entity;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -20,17 +19,30 @@ import lombok.Setter;
 public class Community {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private long id;
+	private int id;
+
 	@Column(name = "name", nullable = false)
 	private String name;
+
 	@Column(name = "description", nullable = false)
     private String description;
+
 	@Column(name = "creationDate", nullable = false)
-    private String creationDate;
+    private LocalDate creationDate;
+
 	@Column(name = "isSuspended", nullable = false)
     public boolean isSuspended;
+
 	@Column(name = "suspendedReason", nullable = false)
     public String suspendedReason;
 
+	public Community(String name, String description, LocalDate creationDate, boolean isSuspended, String suspendedReason) {
+		this.name = name;
+		this.description = description;
+		this.creationDate = creationDate;
+		this.isSuspended = isSuspended;
+		this.suspendedReason = suspendedReason;
+	}
 }

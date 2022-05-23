@@ -3,12 +3,7 @@ package com.ftn.redditClone.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.ftn.redditClone.model.dto.CommunityDTO;
 import com.ftn.redditClone.model.entity.Community;
@@ -18,18 +13,52 @@ import com.ftn.redditClone.service.CommunityService;
 @RequestMapping("community")
 public class CommunityController {
 
-	@Autowired
-	private CommunityService communityService;
-	
-	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-	@PostMapping(consumes = "application/json")
-	public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO){
-		
-		Community community = new Community(communityDTO.getId(), communityDTO.getName(), communityDTO.getDescription(), communityDTO.getCreationDate(), communityDTO.isSuspended, communityDTO.suspendedReason);
-		communityService.save(community);
-		
-		return new ResponseEntity<>(new CommunityDTO(communityDTO.getId(), communityDTO.getName(), communityDTO.getDescription(), communityDTO.getCreationDate(), communityDTO.isSuspended, communityDTO.suspendedReason), HttpStatus.CREATED);
-		
-	}
-	
+    @Autowired
+    private CommunityService communityService;
+
+
+    @GetMapping(consumes = "application/json")
+    public ResponseEntity<CommunityDTO> findOne(@RequestBody CommunityDTO communityDTO){
+        Community community = communityService.findById(communityDTO.getId());
+        return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.FOUND);
+    }
+
+    //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PostMapping(consumes = "application/json")
+    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO) {
+
+        Community community = new Community(communityDTO.getName(), communityDTO.getDescription(), communityDTO.getCreationDate(), communityDTO.isSuspended, communityDTO.suspendedReason);
+        communityService.save(community);
+
+        return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.CREATED);
+    }
+
+    @PutMapping(consumes = "application/json")
+    public ResponseEntity<CommunityDTO> updateCommunity(@RequestBody CommunityDTO communityDTO) {
+
+        if (communityDTO.getId() == 0) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            Community community = communityService.findById(communityDTO.getId());
+
+            if (community.getName() != null) {
+                community.setName(communityDTO.getName());
+            }
+
+            if (community.getDescription() != null) {
+                community.setDescription(communityDTO.getDescription());
+            }
+            if (community.getSuspendedReason() != null) {
+                community.setSuspendedReason(communityDTO.suspendedReason);
+            }
+            communityService.save(community);
+            return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.CREATED);
+        }
+    }
+
+    @DeleteMapping(value = "delete", consumes = "application/json")
+    public void deleteCommunity(@RequestBody CommunityDTO communityDTO){
+        communityService.deleteById(communityDTO.getId());
+    }
+
 }
