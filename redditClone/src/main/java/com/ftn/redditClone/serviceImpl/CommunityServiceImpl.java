@@ -1,6 +1,7 @@
 package com.ftn.redditClone.serviceImpl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,7 @@ public class CommunityServiceImpl implements CommunityService{
 	
 	@Override
 	public List<Community> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		return communityRepository.findAll();
 	}
 
 	@Override
@@ -35,8 +35,13 @@ public class CommunityServiceImpl implements CommunityService{
 
 	@Override
 	public Community findById(int id) {
-		communityRepository.findById(id);
-		return null;
+		return communityRepository.findById(id).orElseGet(null);
 	}
+
+	@Override
+	public Community updateCommunity(Community community) {
+		return communityRepository.save(community);
+	}
+
 
 }

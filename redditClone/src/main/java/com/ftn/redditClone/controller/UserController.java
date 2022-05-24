@@ -7,6 +7,7 @@ import com.ftn.redditClone.repository.UserRepository;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,17 +58,24 @@ public class UserController {
         this.tokenUtils = tokenUtils;
     }
 
-    @GetMapping()
-    public void findOne(@RequestBody UserDTO userDTO) {
-        User user = userService.findById(userDTO.getId());
-        System.out.println(user.toString());
+    @GetMapping(value = "findAll")
+    public ResponseEntity<List<UserDTO>> findAll(){
+
+        List<User> users = userService.findAll();
+        List<UserDTO> returnUsers = new ArrayList<UserDTO>();
+        for (User user:
+             users) {
+            returnUsers.add(new UserDTO(user));
+        }
+
+        return new ResponseEntity<>(returnUsers, HttpStatus.OK);
     }
 
-    @GetMapping(value = "profile")
-    public ResponseEntity<UserDTO> findOne(@RequestParam String username) {
+    @GetMapping()
+    public ResponseEntity<UserDTO> findOne(@RequestBody UserDTO userDTO) {
 
-        User user = userService.findByUsername(username);
-        return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
+        User user = userService.findById(userDTO.getId());
+        return new ResponseEntity<>(new UserDTO(user), HttpStatus.FOUND);
     }
 
     @PostMapping(consumes = "application/json")
@@ -76,9 +85,7 @@ public class UserController {
                 userDTO.getAvatar(), userDTO.getRegistrationDate(), userDTO.getDescription(), userDTO.getDisplayName());
 
         userService.save(user);
-        return new ResponseEntity<>(new UserDTO(userDTO.getUsername(), userDTO.getRole(), userDTO.getPassword(),
-                userDTO.getEmail(), userDTO.getAvatar(), userDTO.getRegistrationDate(), userDTO.getDescription(),
-                userDTO.getDisplayName()), HttpStatus.CREATED);
+        return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
 
     }
 
@@ -108,7 +115,25 @@ public class UserController {
     @PutMapping(consumes = "application/json")
     public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO) {
 
-        userService.deleteById(userDTO.getId());
+        User user = userService.findById(userDTO.getId());
+
+        if(userDTO.getDescription() != null){
+            user.setDescription(userDTO.getDescription());
+        }
+
+        if(userDTO.getAvatar() != null){
+            user.setAvatar(userDTO.getAvatar());
+        }
+
+        if(userDTO.getDisplayName() != null){
+            user.setDisplayName(userDTO.getDisplayName());
+        }
+
+        if(userDTO.getEmail() != null){
+            user.setEmail(userDTO.getEmail());
+        }
+        userService.save(user);
+
         return new ResponseEntity<>(HttpStatus.GONE);
 
     }
@@ -117,20 +142,17 @@ public class UserController {
     @PutMapping(value = "/passwordChange", consumes = "application/json")
     public ResponseEntity<PasswordChangeDTO> updateUserPassword(@RequestBody PasswordChangeDTO passwordChangeDTO,
                                                                 @RequestHeader("Authorization") String token) {
-    	BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    	
-        System.out.println("TU SAM!");
-        System.out.println(token);
-        System.out.println(token.substring(7));
-        String username = tokenUtils.getUsernameFromToken(token.substring(7));
-        
-        User user = userService.findByUsername(username); 
-        user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
-        userService.save(user);
-        
-        return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getUsername(),
-                passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword()), HttpStatus.GONE);
 
+        if(passwordChangeDTO.getOldPassword() == null){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }else {
+
+            String username = tokenUtils.getUsernameFromToken(token.substring(7));
+            userService.changePassword(username, passwordChangeDTO.getNewPassword());
+
+            return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getUsername(),
+                    passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword()), HttpStatus.GONE);
+        }
     }
 
 }
