@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("posts")
 public class PostController {
@@ -22,6 +25,19 @@ public class PostController {
         postService.save(post);
 
         return new ResponseEntity<>(new PostDTO(post), HttpStatus.FOUND);
+    }
+
+    @GetMapping(value = "findAll")
+    public ResponseEntity<List<PostDTO>> findAll(){
+
+        List<Post> posts = postService.findAll();
+        List<PostDTO> returnPosts = new ArrayList<PostDTO>();
+
+        for (Post post :
+                posts) {
+            returnPosts.add(new PostDTO(post));
+        }
+        return new ResponseEntity<>(returnPosts, HttpStatus.OK);
     }
 
     @PostMapping(consumes = "application/json")

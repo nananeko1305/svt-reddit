@@ -7,6 +7,7 @@ import com.ftn.redditClone.repository.UserRepository;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,17 +58,24 @@ public class UserController {
         this.tokenUtils = tokenUtils;
     }
 
-    @GetMapping()
-    public void findOne(@RequestBody UserDTO userDTO) {
-        User user = userService.findById(userDTO.getId());
-        System.out.println(user.toString());
+    @GetMapping(value = "findAll")
+    public ResponseEntity<List<UserDTO>> findAll(){
+
+        List<User> users = userService.findAll();
+        List<UserDTO> returnUsers = new ArrayList<UserDTO>();
+        for (User user:
+             users) {
+            returnUsers.add(new UserDTO(user));
+        }
+
+        return new ResponseEntity<>(returnUsers, HttpStatus.OK);
     }
 
-    @GetMapping(value = "profile")
-    public ResponseEntity<UserDTO> findOne(@RequestParam String username) {
+    @GetMapping()
+    public ResponseEntity<UserDTO> findOne(@RequestBody UserDTO userDTO) {
 
-        User user = userService.findByUsername(username);
-        return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
+        User user = userService.findById(userDTO.getId());
+        return new ResponseEntity<>(new UserDTO(user), HttpStatus.FOUND);
     }
 
     @PostMapping(consumes = "application/json")
@@ -134,17 +142,17 @@ public class UserController {
     @PutMapping(value = "/passwordChange", consumes = "application/json")
     public ResponseEntity<PasswordChangeDTO> updateUserPassword(@RequestBody PasswordChangeDTO passwordChangeDTO,
                                                                 @RequestHeader("Authorization") String token) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        String username = tokenUtils.getUsernameFromToken(token.substring(7));
-        
-        User user = userService.findByUsername(username); 
-        user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
-        userService.save(user);
-        
-        return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getUsername(),
-                passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword()), HttpStatus.GONE);
+        if(passwordChangeDTO.getOldPassword() == null){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }else {
 
+            String username = tokenUtils.getUsernameFromToken(token.substring(7));
+            userService.changePassword(username, passwordChangeDTO.getNewPassword());
+
+            return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getUsername(),
+                    passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword()), HttpStatus.GONE);
+        }
     }
 
 }

@@ -18,7 +18,7 @@ public interface UserService {
 	
 	public User findById(int id);
 	
-	public void changePassword(int id);
+	public void changePassword(String username, String newPassword);
 	
 	public User findByUsername(String username);
 	

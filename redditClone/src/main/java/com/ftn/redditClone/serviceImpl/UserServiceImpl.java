@@ -44,9 +44,10 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public void changePassword(int id) {
-		
-		User user = findById(id);
+	public void changePassword(String username, String newPassword) {
+
+		User user = findByUsername(username);
+		user.setPassword(passwordEncoder.encode(newPassword));
 		userRepository.save(user);
 		
 	}

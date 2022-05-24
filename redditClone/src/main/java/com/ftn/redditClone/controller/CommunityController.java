@@ -9,6 +9,9 @@ import com.ftn.redditClone.model.dto.CommunityDTO;
 import com.ftn.redditClone.model.entity.Community;
 import com.ftn.redditClone.service.CommunityService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("community")
 public class CommunityController {
@@ -21,6 +24,20 @@ public class CommunityController {
     public ResponseEntity<CommunityDTO> findOne(@RequestBody CommunityDTO communityDTO){
         Community community = communityService.findById(communityDTO.getId());
         return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.FOUND);
+    }
+
+    @GetMapping(value = "findAll")
+    public ResponseEntity<List<CommunityDTO>> findAll(){
+
+        List<Community> communities = communityService.findAll();
+        List<CommunityDTO> returnCommunities = new ArrayList<CommunityDTO>();
+
+        for (Community community:
+             communities) {
+            returnCommunities.add(new CommunityDTO(community));
+        }
+
+        return new ResponseEntity<>(returnCommunities, HttpStatus.OK);
     }
 
     //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
