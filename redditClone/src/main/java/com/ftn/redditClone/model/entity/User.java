@@ -1,15 +1,6 @@
 package com.ftn.redditClone.model.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.aspectj.weaver.tools.Trace;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -39,7 +32,7 @@ public class User {
     private String username;
     
 //    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role")
+    @Column(name = "role")
     private Role role;
     
     @Column(name = "password", nullable = false)
@@ -59,7 +52,10 @@ public class User {
     
     @Column(name = "displayName", nullable = false)
     private String displayName;
-    
+
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Post> posts = new ArrayList<>();
 
 
 	public User(String username, Role role, String password, String email, String avatar, LocalDate registrationDate,

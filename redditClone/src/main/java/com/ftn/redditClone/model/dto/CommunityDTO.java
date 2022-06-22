@@ -21,15 +21,8 @@ public class CommunityDTO {
     public boolean isSuspended;
     public String suspendedReason;
 
-    public CommunityDTO(String name, String description, LocalDate creationDate, boolean isSuspended, String suspendedReason) {
-        this.name = name;
-        this.description = description;
-        this.creationDate = creationDate;
-        this.isSuspended = isSuspended;
-        this.suspendedReason = suspendedReason;
-    }
 
     public CommunityDTO(Community community){
-        this(community.getName(), community.getDescription(), community.getCreationDate(), community.isSuspended, community.getSuspendedReason());
+        this(community.getId(),community.getName(), community.getDescription(), community.getCreationDate(), community.isSuspended(), community.getSuspendedReason());
     }
 }

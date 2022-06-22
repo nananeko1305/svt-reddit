@@ -7,8 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -35,14 +39,15 @@ public class Community {
 	@Column(name = "isSuspended", nullable = false)
     public boolean isSuspended;
 
-	@Column(name = "suspendedReason", nullable = false)
+	@Column(name = "suspendedReason", nullable = true)
     public String suspendedReason;
 
-	public Community(String name, String description, LocalDate creationDate, boolean isSuspended, String suspendedReason) {
-		this.name = name;
-		this.description = description;
-		this.creationDate = creationDate;
-		this.isSuspended = isSuspended;
-		this.suspendedReason = suspendedReason;
-	}
+	@OneToMany(mappedBy = "community", orphanRemoval = true, cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
+	private List<Moderator> moderator;
+
+	@OneToMany(mappedBy = "community", orphanRemoval = true, cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
+	private Set<Post> posts;
+
 }

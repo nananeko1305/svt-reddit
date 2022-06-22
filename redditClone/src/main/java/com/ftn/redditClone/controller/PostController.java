@@ -1,13 +1,19 @@
 package com.ftn.redditClone.controller;
 
 import com.ftn.redditClone.model.dto.PostDTO;
+import com.ftn.redditClone.model.entity.Community;
 import com.ftn.redditClone.model.entity.Post;
+import com.ftn.redditClone.model.entity.User;
+import com.ftn.redditClone.security.TokenUtils;
+import com.ftn.redditClone.service.CommunityService;
 import com.ftn.redditClone.service.PostService;
+import com.ftn.redditClone.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +24,15 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private CommunityService communityService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TokenUtils tokenUtils;
+
     @GetMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> getOne(@RequestBody PostDTO postDTO){
 
@@ -27,11 +42,11 @@ public class PostController {
         return new ResponseEntity<>(new PostDTO(post), HttpStatus.FOUND);
     }
 
-    @GetMapping(value = "findAll")
+    @GetMapping()
     public ResponseEntity<List<PostDTO>> findAll(){
 
         List<Post> posts = postService.findAll();
-        List<PostDTO> returnPosts = new ArrayList<PostDTO>();
+        List<PostDTO> returnPosts = new ArrayList<>();
 
         for (Post post :
                 posts) {
@@ -41,11 +56,12 @@ public class PostController {
     }
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO){
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Token") String bearer){
 
-        Post post = new Post(postDTO.getTitle(), postDTO.getText(), postDTO.getCreationDate(), postDTO.getImagePath());
+        String token = bearer.substring(7);
+        String username = tokenUtils.getUsernameFromToken(token);
+        Post post = new Post(postDTO.getId(),postDTO.getTitle(), postDTO.getText(), LocalDate.now(), postDTO.getImagePath(), communityService.findById(postDTO.getCommunity().getId()), userService.findByUsername(username));
         postService.save(post);
-
         return new ResponseEntity<>(new PostDTO(post), HttpStatus.CREATED);
     }
 

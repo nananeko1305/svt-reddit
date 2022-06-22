@@ -2,14 +2,17 @@ package com.ftn.redditClone.controller;
 
 import com.ftn.redditClone.model.dto.PasswordChangeDTO;
 import com.ftn.redditClone.model.dto.UserDTO;
+import com.ftn.redditClone.model.entity.Role;
 import com.ftn.redditClone.model.entity.User;
 import com.ftn.redditClone.repository.UserRepository;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.UserService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.usertype.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +54,7 @@ public class UserController {
         this.tokenUtils = tokenUtils;
     }
 
-    @GetMapping(value = "findAll")
+    @GetMapping()
     public ResponseEntity<List<UserDTO>> findAll(){
 
         List<User> users = userService.findAll();
@@ -64,18 +67,18 @@ public class UserController {
         return new ResponseEntity<>(returnUsers, HttpStatus.OK);
     }
 
-    @GetMapping()
-    public ResponseEntity<UserDTO> findOne(@RequestBody UserDTO userDTO) {
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> findOne(@PathVariable int id) {
 
-        User user = userService.findById(userDTO.getId());
-        return new ResponseEntity<>(new UserDTO(user), HttpStatus.FOUND);
+        User user = userService.findById(id);
+        return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
     }
 
     @PostMapping(consumes = "application/json")
     public ResponseEntity<UserDTO> saveUser(@RequestBody UserDTO userDTO) {
 
-        User user = new User(userDTO.getUsername(), userDTO.getRole(), userDTO.getPassword(), userDTO.getEmail(),
-                userDTO.getAvatar(), userDTO.getRegistrationDate(), userDTO.getDescription(), userDTO.getDisplayName());
+        User user = new User(userDTO.getUsername(), Role.USER, userDTO.getPassword(), userDTO.getEmail(),
+                userDTO.getAvatar(), LocalDate.now(), userDTO.getDescription(), userDTO.getDisplayName());
 
         userService.save(user);
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
@@ -105,10 +108,14 @@ public class UserController {
 
     }
 
-    @PutMapping(consumes = "application/json")
-    public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO) {
+    @PutMapping(value="/{id}", consumes = "application/json")
+    public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO, @PathVariable int id) {
 
-        User user = userService.findById(userDTO.getId());
+        User user = userService.findById(id);
+
+        if(userDTO.getUsername() != null){
+            user.setUsername(userDTO.getUsername());
+        }
 
         if(userDTO.getDescription() != null){
             user.setDescription(userDTO.getDescription());
@@ -127,7 +134,7 @@ public class UserController {
         }
         userService.save(user);
 
-        return new ResponseEntity<>(HttpStatus.GONE);
+        return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
 
     }
 
