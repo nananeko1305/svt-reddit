@@ -3,6 +3,7 @@ package com.ftn.redditClone.model.entity;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,11 +36,12 @@ public class Post  {
     @Column(name = "imagePath")
     private String imagePath;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "communityID", referencedColumnName = "id", nullable = false)
+    public Community community;
 
-    public Post(String title, String text, LocalDate creationDate, String imagePath) {
-        this.title = title;
-        this.text = text;
-        this.creationDate = creationDate;
-        this.imagePath = imagePath;
-    }
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "userID", referencedColumnName = "id", nullable = false)// prvi atribut je u ovoj tabeli kolona a drugi je referenca na kolonu tabele od ispod
+    public User user;//tabela
+
 }

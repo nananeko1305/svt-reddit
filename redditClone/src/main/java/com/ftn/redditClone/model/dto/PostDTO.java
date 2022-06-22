@@ -20,15 +20,10 @@ public class PostDTO {
     private String text;
     private LocalDate creationDate;
     private String imagePath;
-
-    public PostDTO(String title, String text, LocalDate creationDate, String imagePath) {
-        this.title = title;
-        this.text = text;
-        this.creationDate = creationDate;
-        this.imagePath = imagePath;
-    }
+    private CommunityDTO community;
+    private UserDTO user;
 
     public PostDTO(Post post){
-        this(post.getId(), post.getTitle(), post.getText(), post.getCreationDate(), post.getImagePath());
+        this(post.getId(), post.getTitle(), post.getText(), post.getCreationDate(), post.getImagePath(), new CommunityDTO(post.getCommunity()), new UserDTO(post.getUser()));
     }
 }

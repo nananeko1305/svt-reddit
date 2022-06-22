@@ -1,32 +1,30 @@
 package com.ftn.redditClone.model.entity;
 
-import java.io.Serializable;
-import java.time.LocalDate;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.*;
+import java.util.List;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+public class Moderator{
 
-public class Moderator implements Serializable {
+    @Id
+    @Column(name = "id", unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-    private String username;
-    private String password;
-    private String email;
-    private String avatar;
-    private LocalDate registrationDate;
-    private String description;
-    private String displayName;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "userID", referencedColumnName = "id", nullable = false)
+    private User user;
 
-    public GrantedAuthority getRole() {
-        return new SimpleGrantedAuthority("MODERATOR");
-    }
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "communityID", referencedColumnName = "id", nullable = false)
+    private Community community;
 }
