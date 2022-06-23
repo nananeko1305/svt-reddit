@@ -52,14 +52,14 @@ public class CommunityController {
     @GetMapping("/{id}/posts")
     public ResponseEntity<List<PostDTO>> findAllPostsForCommunity(@PathVariable int id){
 
-        Community community = communityService.findById(id);
-        Set<Post> posts = community.getPosts();
-
-        List<PostDTO> returnPost = new ArrayList<>();
-        for (Post post: posts) {
-            returnPost.add(new PostDTO(post));
-        }
-        return new ResponseEntity<>(returnPost, HttpStatus.OK);
+//        Community community = communityService.findById(id);
+////        Set<Post> posts = community.getPosts();
+//
+//        List<PostDTO> returnPost = new ArrayList<>();
+//        for (Post post: posts) {
+//            returnPost.add(new PostDTO());
+//        }
+        return new ResponseEntity<>(null , HttpStatus.OK);
 
     }
 
@@ -82,12 +82,12 @@ public class CommunityController {
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
-        Community community = new Community(0, communityDTO.getName(), communityDTO.getDescription(), LocalDate.now(), communityDTO.isSuspended(), communityDTO.getSuspendedReason(), new ArrayList<>(), new HashSet<>());
-        Moderator moderator = new Moderator(0,userService.findByUsername(username), community);
-        communityService.save(community);
-        moderatorService.save(moderator);
+////        Community community = new Community(0, communityDTO.getName(), communityDTO.getDescription(), LocalDate.now(), communityDTO.isSuspended(), communityDTO.getSuspendedReason(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashSet<>(), new HashSet<>());
+//        Moderator moderator = new Moderator(0,userService.findByUsername(username), community);
+//        communityService.save(community);
+//        moderatorService.save(moderator);
 
-        return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.OK);
+        return new ResponseEntity<>(new CommunityDTO(), HttpStatus.OK);
     }
 
     @PutMapping(consumes = "application/json", value = "/{id}")
@@ -106,7 +106,7 @@ public class CommunityController {
                 community.setDescription(communityDTO.getDescription());
             }
             if (community.getSuspendedReason() != null) {
-                community.setSuspendedReason(communityDTO.suspendedReason);
+                community.setSuspendedReason(communityDTO.getSuspendedReason());
             }
             communityService.save(community);
             return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.CREATED);
