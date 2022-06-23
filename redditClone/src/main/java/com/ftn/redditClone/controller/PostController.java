@@ -1,11 +1,14 @@
 package com.ftn.redditClone.controller;
 
+import com.ftn.redditClone.model.dto.FlairDTO;
 import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.entity.Community;
+import com.ftn.redditClone.model.entity.Flair;
 import com.ftn.redditClone.model.entity.Post;
 import com.ftn.redditClone.model.entity.User;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.CommunityService;
+import com.ftn.redditClone.service.DTOService;
 import com.ftn.redditClone.service.PostService;
 import com.ftn.redditClone.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @RestController
@@ -33,13 +37,16 @@ public class PostController {
     @Autowired
     private TokenUtils tokenUtils;
 
+    @Autowired
+    private DTOService dtoService;
+
     @GetMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> getOne(@RequestBody PostDTO postDTO){
 
         Post post = postService.findById(postDTO.getId());
         postService.save(post);
 
-        return new ResponseEntity<>(new PostDTO(post), HttpStatus.FOUND);
+        return new ResponseEntity<>(new PostDTO(), HttpStatus.FOUND);
     }
 
     @GetMapping()
@@ -50,7 +57,7 @@ public class PostController {
 
         for (Post post :
                 posts) {
-            returnPosts.add(new PostDTO(post));
+            returnPosts.add(new PostDTO());
         }
         return new ResponseEntity<>(returnPosts, HttpStatus.OK);
     }
@@ -60,9 +67,10 @@ public class PostController {
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
-        Post post = new Post(postDTO.getId(),postDTO.getTitle(), postDTO.getText(), LocalDate.now(), postDTO.getImagePath(), communityService.findById(postDTO.getCommunity().getId()), userService.findByUsername(username));
+        Flair flair = new Flair();
+        Post post = new Post(postDTO.getId(),postDTO.getTitle(), postDTO.getText(), LocalDate.now(), postDTO.getImagePath(), communityService.findById(postDTO.getCommunity().getId()), userService.findByUsername(username), new Flair(postDTO.getFlair()), null, null);
         postService.save(post);
-        return new ResponseEntity<>(new PostDTO(post), HttpStatus.CREATED);
+        return new ResponseEntity<>(new PostDTO(), HttpStatus.CREATED);
     }
 
     @PutMapping(consumes = "application/json")
@@ -84,7 +92,7 @@ public class PostController {
 
         postService.save(post);
 
-        return new ResponseEntity<>(new PostDTO(post), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(new PostDTO(), HttpStatus.ACCEPTED);
     }
 
     @DeleteMapping(consumes = "application/json")

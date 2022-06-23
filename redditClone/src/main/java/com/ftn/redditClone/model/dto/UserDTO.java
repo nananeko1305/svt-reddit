@@ -1,13 +1,17 @@
 package com.ftn.redditClone.model.dto;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotBlank;
 
+import com.ftn.redditClone.model.entity.*;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
-
-import com.ftn.redditClone.model.entity.Role;
-import com.ftn.redditClone.model.entity.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,22 +42,40 @@ public class UserDTO {
 	@NotBlank
 	private String displayName;
 
-	public UserDTO(@NotBlank String username, @NotBlank Role role, @NotBlank String password, @NotBlank String email,
-			@NotBlank String avatar, @NotBlank LocalDate registrationDate, @NotBlank String description,
-			@NotBlank String displayName) {
-		super();
-		this.username = username;
-		this.role = role;
-		this.password = password;
-		this.email = email;
-		this.avatar = avatar;
-		this.registrationDate = registrationDate;
-		this.description = description;
-		this.displayName = displayName;
-	}
+	private List<PostDTO> posts = new ArrayList<>();
 
-	public UserDTO(User user) {
-		this(user.getId(), user.getUsername(), user.getRole(), user.getPassword(), user.getEmail(), user.getAvatar(),
-				user.getRegistrationDate(), user.getDescription(), user.getDisplayName());
+	private List<CommentDTO> comments = new ArrayList<>();
+
+	private List<ReportDTO> reports = new ArrayList<>();
+
+	private List<BannedDTO> banneds = new ArrayList<>();
+
+	public UserDTO(User user){
+
+		this.id = user.getId();
+		this.username = user.getUsername();
+		this.role = user.getRole();
+		this.password = user.getPassword();
+		this.email = user.getEmail();
+		this.avatar = user.getAvatar();
+		this.registrationDate = user.getRegistrationDate();
+		this.description = user.getDescription();
+		this.displayName = user.getDisplayName();
+
+		for (Post post: user.getPosts()){
+			this.posts.add(new PostDTO(post));
+		}
+
+		for (Comment comment: user.getComments()){
+			this.comments.add(new CommentDTO(comment));
+		}
+
+		for (Report report: user.getReports()){
+			this.reports.add(new ReportDTO(report));
+		}
+
+		for (Banned banned: user.getBanneds()){
+			this.banneds.add(new BannedDTO(banned));
+		}
 	}
 }

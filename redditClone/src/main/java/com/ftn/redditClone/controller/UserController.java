@@ -1,11 +1,12 @@
 package com.ftn.redditClone.controller;
 
 import com.ftn.redditClone.model.dto.PasswordChangeDTO;
+import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.dto.UserDTO;
-import com.ftn.redditClone.model.entity.Role;
-import com.ftn.redditClone.model.entity.User;
+import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.repository.UserRepository;
 import com.ftn.redditClone.security.TokenUtils;
+import com.ftn.redditClone.service.DTOService;
 import com.ftn.redditClone.service.UserService;
 
 import java.time.LocalDate;
@@ -46,6 +47,9 @@ public class UserController {
     private TokenUtils tokenUtils;
 
     @Autowired
+    private DTOService dtoService;
+
+    @Autowired
     public UserController(UserService userService, AuthenticationManager authenticationManager,
                           UserDetailsService userDetailsService, TokenUtils tokenUtils) {
         this.userService = userService;
@@ -55,13 +59,13 @@ public class UserController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<UserDTO>> findAll(){
+    public ResponseEntity<List<UserDTO>> findAll() {
 
         List<User> users = userService.findAll();
         List<UserDTO> returnUsers = new ArrayList<UserDTO>();
-        for (User user:
-             users) {
-            returnUsers.add(new UserDTO(user));
+        for (User user :
+                users) {
+            returnUsers.add(new UserDTO(user.getId(), user.getUsername(), user.getRole(), user.getPassword(), user.getEmail(), user.getAvatar(), user.getRegistrationDate(), user.getDescription(), user.getDisplayName(), dtoService.postToDTO(user.getPosts()), dtoService.commentToDTO(user.getComments()), dtoService.reportToDTO(user.getReports()), dtoService.bannedToDTO(user.getBanneds())));
         }
 
         return new ResponseEntity<>(returnUsers, HttpStatus.OK);
@@ -77,8 +81,7 @@ public class UserController {
     @PostMapping(consumes = "application/json")
     public ResponseEntity<UserDTO> saveUser(@RequestBody UserDTO userDTO) {
 
-        User user = new User(userDTO.getUsername(), Role.USER, userDTO.getPassword(), userDTO.getEmail(),
-                userDTO.getAvatar(), LocalDate.now(), userDTO.getDescription(), userDTO.getDisplayName());
+        User user = new User(userDTO.getId(), userDTO.getUsername(), Role.USER, userDTO.getPassword(), userDTO.getEmail(), userDTO.getAvatar(), LocalDate.now(), userDTO.getDescription(), userDTO.getDisplayName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         userService.save(user);
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
@@ -108,28 +111,28 @@ public class UserController {
 
     }
 
-    @PutMapping(value="/{id}", consumes = "application/json")
+    @PutMapping(value = "/{id}", consumes = "application/json")
     public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO, @PathVariable int id) {
 
         User user = userService.findById(id);
 
-        if(userDTO.getUsername() != null){
+        if (userDTO.getUsername() != null) {
             user.setUsername(userDTO.getUsername());
         }
 
-        if(userDTO.getDescription() != null){
+        if (userDTO.getDescription() != null) {
             user.setDescription(userDTO.getDescription());
         }
 
-        if(userDTO.getAvatar() != null){
+        if (userDTO.getAvatar() != null) {
             user.setAvatar(userDTO.getAvatar());
         }
 
-        if(userDTO.getDisplayName() != null){
+        if (userDTO.getDisplayName() != null) {
             user.setDisplayName(userDTO.getDisplayName());
         }
 
-        if(userDTO.getEmail() != null){
+        if (userDTO.getEmail() != null) {
             user.setEmail(userDTO.getEmail());
         }
         userService.save(user);
@@ -143,9 +146,9 @@ public class UserController {
     public ResponseEntity<PasswordChangeDTO> updateUserPassword(@RequestBody PasswordChangeDTO passwordChangeDTO,
                                                                 @RequestHeader("Authorization") String token) {
 
-        if(passwordChangeDTO.getOldPassword() == null){
+        if (passwordChangeDTO.getOldPassword() == null) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }else {
+        } else {
 
             String username = tokenUtils.getUsernameFromToken(token.substring(7));
             userService.changePassword(username, passwordChangeDTO.getNewPassword());
