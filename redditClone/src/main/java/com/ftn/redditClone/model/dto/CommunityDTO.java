@@ -27,28 +27,33 @@ public class CommunityDTO {
     private LocalDate creationDate;
     private boolean isSuspended;
     private String suspendedReason;
-    private List<ModeratorDTO> moderators;
-    private List<BannedDTO> banneds;
-    private List<RuleDTO> rules;
-    private Set<FlairDTO> flairs;
-
-    public CommunityDTO(Community community){
+    private List<ModeratorDTO> moderators = new ArrayList<>();
+    private List<BannedDTO> banneds = new ArrayList<>();
+    private List<RuleDTO> rules = new ArrayList<>();
+    private Set<FlairDTO> flairs = new HashSet<>();
+    public CommunityDTO(Community community) {
         this.id = community.getId();
         this.name = community.getName();
         this.description = community.getDescription();
         this.creationDate = community.getCreationDate();
         this.isSuspended = community.isSuspended();
-        for(Moderator moderator: community.getModerators()){
+        this.suspendedReason = community.getSuspendedReason();
+
+        for (Moderator moderator : community.getModerators()) {
             this.moderators.add(new ModeratorDTO(moderator));
         }
-        for(Banned banned: community.getBanneds()){
+
+        for (Banned banned : community.getBanneds()) {
             this.banneds.add(new BannedDTO(banned));
         }
-        for(Rule rule: community.getRules()){
+
+        for (Rule rule : community.getRules()) {
             this.rules.add(new RuleDTO(rule));
+
         }
-        for(Flair flair: community.getFlairs()){
+        for (Flair flair : community.getFlairs()) {
             this.flairs.add(new FlairDTO(flair));
+
         }
     }
 

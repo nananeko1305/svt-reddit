@@ -27,7 +27,7 @@ public class UserDTO {
 	private int id;
 	@NotBlank
 	private String username;
-	@NotBlank
+
 	private Role role;
 	@NotBlank
 	private String password;
@@ -61,21 +61,5 @@ public class UserDTO {
 		this.registrationDate = user.getRegistrationDate();
 		this.description = user.getDescription();
 		this.displayName = user.getDisplayName();
-
-		for (Post post: user.getPosts()){
-			this.posts.add(new PostDTO(post));
-		}
-
-		for (Comment comment: user.getComments()){
-			this.comments.add(new CommentDTO(comment));
-		}
-
-		for (Report report: user.getReports()){
-			this.reports.add(new ReportDTO(report));
-		}
-
-		for (Banned banned: user.getBanneds()){
-			this.banneds.add(new BannedDTO(banned));
-		}
 	}
 }

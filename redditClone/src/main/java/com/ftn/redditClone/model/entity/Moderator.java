@@ -3,10 +3,15 @@ package com.ftn.redditClone.model.entity;
 import com.ftn.redditClone.model.dto.CommunityDTO;
 import com.ftn.redditClone.model.dto.ModeratorDTO;
 import com.ftn.redditClone.model.dto.UserDTO;
+import com.ftn.redditClone.service.CommunityService;
+import com.ftn.redditClone.service.UserService;
+import com.ftn.redditClone.serviceImpl.CommunityServiceImpl;
+import com.ftn.redditClone.serviceImpl.UserServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -32,9 +37,15 @@ public class Moderator{
     @JoinColumn(name = "communityId", referencedColumnName = "id", nullable = false)
     private Community community;
 
+
+
     public Moderator(ModeratorDTO moderatorDTO){
+
+        UserService userService = new UserServiceImpl();
+        CommunityService communityService = new CommunityServiceImpl();
+
         this.id = moderatorDTO.getId();
-        this.user = new User(moderatorDTO.getUser());
-        this.community = new Community(moderatorDTO.getCommunity());
+        this.user = userService.findById(moderatorDTO.getUserID());
+        this.community = communityService.findById(moderatorDTO.getCommunityID());
     }
 }

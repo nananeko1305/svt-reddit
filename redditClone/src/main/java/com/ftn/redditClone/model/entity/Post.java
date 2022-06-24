@@ -9,10 +9,16 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ftn.redditClone.model.dto.*;
+import com.ftn.redditClone.service.CommunityService;
+import com.ftn.redditClone.service.PostService;
+import com.ftn.redditClone.serviceImpl.CommunityServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 
@@ -50,24 +56,33 @@ public class Post  {
     private User user;//tabela
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "flairId", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "flairId", referencedColumnName = "id", nullable = true)
     private Flair flair;
 
     @OneToMany(mappedBy = "post")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Report> reports = new ArrayList<>();
 
     @OneToMany(mappedBy = "post")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private Set<Reaction> reactions = new HashSet<>();
 
     public Post(PostDTO postDTO){
+
+        CommunityService communityService = new CommunityServiceImpl();
+
         this.id = postDTO.getId();
         this.title = postDTO.getTitle();
         this.text = postDTO.getText();
         this.creationDate = postDTO.getCreationDate();
         this.imagePath = postDTO.getImagePath();
-        this.community = new Community(postDTO.getCommunity());
+        this.community = null;
         this.user = new User(postDTO.getUser());
-        this.flair = new Flair(postDTO.getFlair());
+        if(postDTO.getFlair().getName().isEmpty()){
+            this.flair = null;
+        }else {
+            this.flair = new Flair(postDTO.getFlair());
+        }
         for (ReportDTO reportDTO: postDTO.getReports()){
             this.reports.add(new Report(reportDTO));
         }

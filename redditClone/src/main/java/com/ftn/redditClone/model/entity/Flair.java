@@ -1,6 +1,8 @@
 package com.ftn.redditClone.model.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,10 +33,10 @@ public class Flair  {
     private String name;
 
     @OneToMany(mappedBy = "flair")
-    private List<Post> posts;
+    private List<Post> posts = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "flairs")
-    private Set<Community> communities;
+    @ManyToMany(mappedBy = "flairs", fetch = FetchType.EAGER)
+    private Set<Community> communities = new HashSet<>();
 
     public Flair(FlairDTO flairDTO){
         this.id = flairDTO.getId();

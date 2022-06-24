@@ -5,9 +5,7 @@ import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.entity.Moderator;
 import com.ftn.redditClone.model.entity.Post;
 import com.ftn.redditClone.security.TokenUtils;
-import com.ftn.redditClone.service.ModeratorService;
-import com.ftn.redditClone.service.PostService;
-import com.ftn.redditClone.service.UserService;
+import com.ftn.redditClone.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.ftn.redditClone.model.dto.CommunityDTO;
 import com.ftn.redditClone.model.entity.Community;
-import com.ftn.redditClone.service.CommunityService;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,8 +39,11 @@ public class CommunityController {
     @Autowired
     private TokenUtils tokenUtils;
 
+    @Autowired
+    private DTOService dtoService;
 
-    @GetMapping(consumes = "application/json", value = "/{id}")
+
+    @GetMapping(value = "/{id}")
     public ResponseEntity<CommunityDTO> findOne(@PathVariable int id){
         Community community = communityService.findById(id);
         return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.OK);
@@ -52,14 +52,10 @@ public class CommunityController {
     @GetMapping("/{id}/posts")
     public ResponseEntity<List<PostDTO>> findAllPostsForCommunity(@PathVariable int id){
 
-//        Community community = communityService.findById(id);
-////        Set<Post> posts = community.getPosts();
-//
-//        List<PostDTO> returnPost = new ArrayList<>();
-//        for (Post post: posts) {
-//            returnPost.add(new PostDTO());
-//        }
-        return new ResponseEntity<>(null , HttpStatus.OK);
+        Community community = communityService.findById(id);
+        List<PostDTO> returnPost = dtoService.postToDTO(community.getPosts());
+
+        return new ResponseEntity<>(returnPost , HttpStatus.OK);
 
     }
 
@@ -78,16 +74,16 @@ public class CommunityController {
 
     //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Token") String bearer) {
+    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO /*, @RequestHeader("Authorization") String bearer*/, @RequestHeader("Token") String bearer) {
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
-////        Community community = new Community(0, communityDTO.getName(), communityDTO.getDescription(), LocalDate.now(), communityDTO.isSuspended(), communityDTO.getSuspendedReason(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new HashSet<>(), new HashSet<>());
-//        Moderator moderator = new Moderator(0,userService.findByUsername(username), community);
-//        communityService.save(community);
-//        moderatorService.save(moderator);
+        Community community = new Community(communityDTO);
+        Moderator moderator = new Moderator(0,userService.findByUsername(username), community);
+        communityService.save(community);
+        moderatorService.save(moderator);
 
-        return new ResponseEntity<>(new CommunityDTO(), HttpStatus.OK);
+        return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.OK);
     }
 
     @PutMapping(consumes = "application/json", value = "/{id}")

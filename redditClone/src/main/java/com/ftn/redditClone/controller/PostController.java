@@ -57,7 +57,7 @@ public class PostController {
 
         for (Post post :
                 posts) {
-            returnPosts.add(new PostDTO());
+            returnPosts.add(new PostDTO(post));
         }
         return new ResponseEntity<>(returnPosts, HttpStatus.OK);
     }
@@ -67,10 +67,13 @@ public class PostController {
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
-        Flair flair = new Flair();
-        Post post = new Post(postDTO.getId(),postDTO.getTitle(), postDTO.getText(), LocalDate.now(), postDTO.getImagePath(), communityService.findById(postDTO.getCommunity().getId()), userService.findByUsername(username), new Flair(postDTO.getFlair()), null, null);
+        Community community = communityService.findById(postDTO.getCommunity().getId());
+        User user = userService.findByUsername(username);
+        Post post = new Post(postDTO);
+        post.setUser(user);
+        post.setCommunity(community);
         postService.save(post);
-        return new ResponseEntity<>(new PostDTO(), HttpStatus.CREATED);
+        return new ResponseEntity<>(new PostDTO(post), HttpStatus.CREATED);
     }
 
     @PutMapping(consumes = "application/json")
