@@ -65,7 +65,7 @@ public class UserController {
         List<UserDTO> returnUsers = new ArrayList<UserDTO>();
         for (User user :
                 users) {
-            returnUsers.add(new UserDTO(user.getId(), user.getUsername(), user.getRole(), user.getPassword(), user.getEmail(), user.getAvatar(), user.getRegistrationDate(), user.getDescription(), user.getDisplayName(), dtoService.postToDTO(user.getPosts()), dtoService.commentToDTO(user.getComments()), dtoService.reportToDTO(user.getReports()), dtoService.bannedToDTO(user.getBanneds())));
+            returnUsers.add(new UserDTO(user));
         }
 
         return new ResponseEntity<>(returnUsers, HttpStatus.OK);
@@ -81,8 +81,9 @@ public class UserController {
     @PostMapping(consumes = "application/json")
     public ResponseEntity<UserDTO> saveUser(@RequestBody UserDTO userDTO) {
 
-        User user = new User(userDTO.getId(), userDTO.getUsername(), Role.USER, userDTO.getPassword(), userDTO.getEmail(), userDTO.getAvatar(), LocalDate.now(), userDTO.getDescription(), userDTO.getDisplayName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-
+        User user = new User(userDTO);
+        user.setRegistrationDate(LocalDate.now());
+        user.setRole(Role.USER);
         userService.save(user);
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
 

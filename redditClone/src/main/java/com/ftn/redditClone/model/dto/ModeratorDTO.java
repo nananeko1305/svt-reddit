@@ -15,13 +15,13 @@ import lombok.Setter;
 public class ModeratorDTO {
 
     private int id;
-    private UserDTO user;
-    private CommunityDTO community;
+    private int userID;
+    private int communityID;
 
     public ModeratorDTO(Moderator moderator){
         this.id = moderator.getId();
-        this.user = new UserDTO(moderator.getUser());
-        this.community = new CommunityDTO(moderator.getCommunity());
+        this.userID = moderator.getUser().getId();
+        this.communityID = moderator.getCommunity().getId();
     }
 
 }

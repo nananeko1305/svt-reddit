@@ -1,5 +1,6 @@
 package com.ftn.redditClone.model.entity;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ftn.redditClone.model.dto.*;
@@ -45,11 +46,11 @@ public class Comment {
 
     @OneToMany(mappedBy = "comment")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<Reaction> reactions;
+    private List<Reaction> reactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "comment")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<Report> reports;
+    private List<Report> reports = new ArrayList<>();
 
     public Comment(CommentDTO commentDTO){
         this.id = commentDTO.getId();

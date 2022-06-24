@@ -47,16 +47,21 @@ public class Community {
 
     @OneToMany(mappedBy = "community")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<Moderator> moderators;
+    private List<Moderator> moderators = new ArrayList<>();
 
     @OneToMany(mappedBy = "community")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<Banned> banneds;
+    private List<Banned> banneds = new ArrayList<>();
 
     @OneToMany(mappedBy = "community")
-    private List<Rule> rules;
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<Rule> rules = new ArrayList<>();
 
-    @ManyToMany
+    @OneToMany(mappedBy = "community")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<Post> posts = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "flairs_communities", joinColumns = @JoinColumn(name = "flairId", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "communityId", referencedColumnName = "id"))
     private Set<Flair> flairs = new HashSet<>();
 
@@ -66,6 +71,7 @@ public class Community {
         this.description = communityDTO.getDescription();
         this.creationDate = communityDTO.getCreationDate();
         this.isSuspended = communityDTO.isSuspended();
+
         for(ModeratorDTO moderatorDTO: communityDTO.getModerators()){
             this.moderators.add(new Moderator(moderatorDTO));
         }

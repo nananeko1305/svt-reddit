@@ -1,10 +1,12 @@
 package com.ftn.redditClone.model.dto;
 
 import com.ftn.redditClone.model.entity.*;
+import com.ftn.redditClone.service.CommunityService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.Column;
 import javax.persistence.FetchType;
@@ -32,6 +34,9 @@ public class PostDTO {
     private List<ReportDTO> reports;
     private Set<ReactionDTO> reactions;
 
+    @Autowired
+    public CommunityService communityService;
+
     public PostDTO(Post post){
         this.id = post.getId();
         this.title = post.getTitle();
@@ -40,7 +45,11 @@ public class PostDTO {
         this.imagePath = post.getImagePath();
         this.community = new CommunityDTO(post.getCommunity());
         this.user = new UserDTO(post.getUser());
-        this.flair = new FlairDTO(post.getFlair());
+        if(post.getFlair() == null){
+            this.flair = new FlairDTO();
+        }else{
+            this.flair = new FlairDTO(post.getFlair());
+        }
         for (Report report: post.getReports()){
             this.reports.add(new ReportDTO(report));
         }
