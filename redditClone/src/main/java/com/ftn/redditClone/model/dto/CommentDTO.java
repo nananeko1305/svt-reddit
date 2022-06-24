@@ -23,22 +23,13 @@ public class CommentDTO {
     private boolean isDeleted;
     private PostDTO post;
     private UserDTO user;
-    private List<ReactionDTO> reactions;
-    private List<ReportDTO> reports;
 
-    public CommentDTO(Comment comment){
+    public CommentDTO(Comment comment) {
         this.id = comment.getId();
         this.text = comment.getText();
         this.timestamp = comment.getTimestamp();
         this.isDeleted = comment.isDeleted();
         this.post = new PostDTO(comment.getPost());
         this.user = new UserDTO(comment.getUser());
-        for (Reaction reaction : comment.getReactions()){
-            reactions.add(new ReactionDTO(reaction));
-        }
-        for (Report report : comment.getReports()){
-            reports.add(new ReportDTO(report));
-        }
     }
-
 }

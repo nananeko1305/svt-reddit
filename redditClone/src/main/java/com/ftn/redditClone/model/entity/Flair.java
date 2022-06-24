@@ -39,13 +39,7 @@ public class Flair  {
     private Set<Community> communities = new HashSet<>();
 
     public Flair(FlairDTO flairDTO){
-        this.id = flairDTO.getId();
-        this.name = flairDTO.getName();
-        for(PostDTO postDTO : flairDTO.getPosts()){
-            this.posts.add(new Post(postDTO));
-        }
-        for(CommunityDTO communityDTO : flairDTO.getCommunities()){
-            this.communities.add(new Community(communityDTO));
-        }
+        id = flairDTO.getId();
+        name = flairDTO.getName();
     }
 }

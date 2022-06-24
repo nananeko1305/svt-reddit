@@ -5,11 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.Column;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.time.LocalDate;
 
 @Getter
@@ -30,8 +25,8 @@ public class ReactionDTO {
         this.reactionType = reaction.getReactionType();
         this.timestamp = reaction.getTimestamp();
         this.user = new UserDTO(reaction.getUser());
-        this.comment = new CommentDTO(reaction.getComment());
+        if(reaction.getComment() != null)
+            this.comment = new CommentDTO(reaction.getComment());
         this.post = new PostDTO(reaction.getPost());
     }
-
 }

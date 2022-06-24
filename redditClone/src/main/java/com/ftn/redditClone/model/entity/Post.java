@@ -28,7 +28,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "posts")
-public class Post  {
+public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,7 +52,8 @@ public class Post  {
     private Community community;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "userID", referencedColumnName = "id", nullable = false)// prvi atribut je u ovoj tabeli kolona a drugi je referenca na kolonu tabele od ispod
+    @JoinColumn(name = "userID", referencedColumnName = "id", nullable = false)
+// prvi atribut je u ovoj tabeli kolona a drugi je referenca na kolonu tabele od ispod
     private User user;//tabela
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -65,30 +66,17 @@ public class Post  {
 
     @OneToMany(mappedBy = "post")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private Set<Reaction> reactions = new HashSet<>();
+    private List<Reaction> reactions = new ArrayList<>();
 
-    public Post(PostDTO postDTO){
+    public Post(PostDTO postDTO) {
 
-        CommunityService communityService = new CommunityServiceImpl();
-
-        this.id = postDTO.getId();
-        this.title = postDTO.getTitle();
-        this.text = postDTO.getText();
-        this.creationDate = postDTO.getCreationDate();
-        this.imagePath = postDTO.getImagePath();
-        this.community = null;
-        this.user = new User(postDTO.getUser());
-        if(postDTO.getFlair().getName().isEmpty()){
-            this.flair = null;
-        }else {
-            this.flair = new Flair(postDTO.getFlair());
-        }
-        for (ReportDTO reportDTO: postDTO.getReports()){
-            this.reports.add(new Report(reportDTO));
-        }
-        for (ReactionDTO reactionDTO: postDTO.getReactions()){
-            this.reactions.add(new Reaction(reactionDTO));
-        }
+        title = postDTO.getTitle();
+        text = postDTO.getText();
+        creationDate = postDTO.getCreationDate();
+        imagePath = postDTO.getImagePath();
+        community = null;
+        user = null;
+        flair = null;
     }
 
 }

@@ -31,6 +31,7 @@ public class Reaction {
 
     @Column(name = "reactionType")
     private ReactionType reactionType;
+
     @Column(name = "timestamp")
     private LocalDate timestamp;
 
@@ -39,20 +40,19 @@ public class Reaction {
     private User user;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "commentId", referencedColumnName = "id")
+    @JoinColumn(name = "commentId", referencedColumnName = "id", nullable = true)
     private Comment comment;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "postId", referencedColumnName = "id")
+    @JoinColumn(name = "postId", referencedColumnName = "id", nullable = true)
     private Post post;
 
-
     public Reaction(ReactionDTO reactionDTO){
-        this.id = reactionDTO.getId();
-        this.reactionType = reactionDTO.getReactionType();
-        this.timestamp = reactionDTO.getTimestamp();
-        this.user = new User(reactionDTO.getUser());
-        this.comment = new Comment(reactionDTO.getComment());
-        this.post = new Post(reactionDTO.getPost());
+        id = reactionDTO.getId();
+        reactionType = reactionDTO.getReactionType();
+        timestamp = reactionDTO.getTimestamp();
+        user = new User();
+        comment = new Comment();
+        post = new Post();
     }
 }

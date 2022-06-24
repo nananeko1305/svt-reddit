@@ -31,13 +31,8 @@ public class PostDTO {
     private CommunityDTO community;
     private UserDTO user;
     private FlairDTO flair;
-    private List<ReportDTO> reports;
-    private Set<ReactionDTO> reactions;
 
-    @Autowired
-    public CommunityService communityService;
-
-    public PostDTO(Post post){
+    public PostDTO(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.text = post.getText();
@@ -45,17 +40,8 @@ public class PostDTO {
         this.imagePath = post.getImagePath();
         this.community = new CommunityDTO(post.getCommunity());
         this.user = new UserDTO(post.getUser());
-        if(post.getFlair() == null){
-            this.flair = new FlairDTO();
-        }else{
+        if(post.getFlair() != null)
             this.flair = new FlairDTO(post.getFlair());
-        }
-        for (Report report: post.getReports()){
-            this.reports.add(new ReportDTO(report));
-        }
-        for (Reaction reaction: post.getReactions()){
-            this.reactions.add(new ReactionDTO(reaction));
-        }
     }
 
 }

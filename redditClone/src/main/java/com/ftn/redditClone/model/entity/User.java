@@ -34,7 +34,6 @@ public class User {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    //    @OneToOne(fetch = FetchType.LAZY)
     @Column(name = "role")
     private Role role;
 
@@ -73,32 +72,15 @@ public class User {
     private List<Banned> banneds = new ArrayList<>();
 
     public User(UserDTO userDTO){
-
-        this.id = userDTO.getId();
-        this.username = userDTO.getUsername();
-        this.role = userDTO.getRole();
-        this.password = userDTO.getPassword();
-        this.email = userDTO.getEmail();
-        this.avatar = userDTO.getAvatar();
-        this.registrationDate = userDTO.getRegistrationDate();
-        this.description = userDTO.getDescription();
-        this.displayName = userDTO.getDisplayName();
-
-        for (PostDTO postDTO: userDTO.getPosts()){
-            this.posts.add(new Post(postDTO));
-        }
-
-        for (CommentDTO commentDTO: userDTO.getComments()){
-            this.comments.add(new Comment(commentDTO));
-        }
-
-        for (ReportDTO reportDTO: userDTO.getReports()){
-            this.reports.add(new Report(reportDTO));
-        }
-
-        for (BannedDTO bannedDTO: userDTO.getBanneds()){
-            this.banneds.add(new Banned(bannedDTO));
-        }
+        id = userDTO.getId();
+        username = userDTO.getUsername();
+        role = userDTO.getRole();
+        password = userDTO.getPassword();
+        email = userDTO.getEmail();
+        avatar = userDTO.getAvatar();
+        registrationDate = userDTO.getRegistrationDate();
+        description = userDTO.getDescription();
+        displayName = userDTO.getDisplayName();
     }
 
 }

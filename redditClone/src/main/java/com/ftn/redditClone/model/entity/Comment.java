@@ -52,18 +52,13 @@ public class Comment {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Report> reports = new ArrayList<>();
 
+
     public Comment(CommentDTO commentDTO){
-        this.id = commentDTO.getId();
-        this.text = commentDTO.getText();
-        this.timestamp = commentDTO.getTimestamp();
-        this.isDeleted = commentDTO.isDeleted();
-        this.post = new Post(commentDTO.getPost());
-        this.user = new User(commentDTO.getUser());
-        for (ReactionDTO reactionDTO: commentDTO.getReactions()){
-            reactions.add(new Reaction(reactionDTO));
-        }
-        for (ReportDTO reportDTO : commentDTO.getReports()){
-            reports.add(new Report(reportDTO));
-        }
+        id = commentDTO.getId();
+        text = commentDTO.getText();
+        timestamp = commentDTO.getTimestamp();
+        isDeleted = commentDTO.isDeleted();
+        post = new Post(commentDTO.getPost());
+        user = new User(commentDTO.getUser());
     }
 }
