@@ -40,13 +40,6 @@ public class Banned {
     @JoinColumn(name = "communityId", referencedColumnName = "id")
     private Community community;
 
-    public Banned(BannedDTO bannedDTO){
-        this.id = bannedDTO.getId();
-        this.timestamp = bannedDTO.getTimestamp();
-        this.moderator = new Moderator(bannedDTO.getModerator());
-        this.user = new User(bannedDTO.getUser());
-        this.community = new Community(bannedDTO.getCommunity());
-    }
 
 }
 

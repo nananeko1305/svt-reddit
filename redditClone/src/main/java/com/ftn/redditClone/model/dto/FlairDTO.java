@@ -19,20 +19,9 @@ public class FlairDTO {
     private int id;
     private String name;
 
-    private List<PostDTO> posts;
-    private Set<CommunityDTO> communities;
-
-
-
     public FlairDTO(Flair flair){
         this.id = flair.getId();
         this.name = flair.getName();
-        for (Post post :flair.getPosts()){
-            this.posts.add(new PostDTO(post));
-        }
-        for (Community community :flair.getCommunities()){
-            this.communities.add(new CommunityDTO(community));
-        }
 
     }
 }

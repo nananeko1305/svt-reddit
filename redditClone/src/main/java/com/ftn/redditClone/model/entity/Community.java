@@ -65,24 +65,13 @@ public class Community {
     @JoinTable(name = "flairs_communities", joinColumns = @JoinColumn(name = "flairId", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "communityId", referencedColumnName = "id"))
     private Set<Flair> flairs = new HashSet<>();
 
-    public Community(CommunityDTO communityDTO){
-        this.id = communityDTO.getId();
-        this.name = communityDTO.getName();
-        this.description = communityDTO.getDescription();
-        this.creationDate = communityDTO.getCreationDate();
-        this.isSuspended = communityDTO.isSuspended();
 
-        for(ModeratorDTO moderatorDTO: communityDTO.getModerators()){
-            this.moderators.add(new Moderator(moderatorDTO));
-        }
-        for(BannedDTO bannedDTO: communityDTO.getBanneds()){
-            this.banneds.add(new Banned(bannedDTO));
-        }
-        for(RuleDTO ruleDTO: communityDTO.getRules()){
-            this.rules.add(new Rule(ruleDTO));
-        }
-        for(FlairDTO flairDTO: communityDTO.getFlairs()){
-            this.flairs.add(new Flair(flairDTO));
-        }
+    public Community(CommunityDTO communityDTO) {
+        id = communityDTO.getId();
+        name = communityDTO.getName();
+        description = communityDTO.getDescription();
+        creationDate = communityDTO.getCreationDate();
+        isSuspended = communityDTO.isSuspended();
+        suspendedReason = communityDTO.getSuspendedReason();
     }
 }

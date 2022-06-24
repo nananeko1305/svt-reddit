@@ -4,6 +4,7 @@ import antlr.Token;
 import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.entity.Moderator;
 import com.ftn.redditClone.model.entity.Post;
+import com.ftn.redditClone.model.entity.Reaction;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +54,9 @@ public class CommunityController {
     public ResponseEntity<List<PostDTO>> findAllPostsForCommunity(@PathVariable int id){
 
         Community community = communityService.findById(id);
-        List<PostDTO> returnPost = dtoService.postToDTO(community.getPosts());
+        List<PostDTO> returnPosts = dtoService.postToDTO(community.getPosts());
 
-        return new ResponseEntity<>(returnPost , HttpStatus.OK);
+        return new ResponseEntity<>(returnPosts , HttpStatus.OK);
 
     }
 
@@ -74,7 +75,7 @@ public class CommunityController {
 
     //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO /*, @RequestHeader("Authorization") String bearer*/, @RequestHeader("Token") String bearer) {
+    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Token") String bearer) {
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);

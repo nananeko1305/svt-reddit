@@ -9,7 +9,7 @@ public interface PostService {
 
     public List<Post> findAll();
 
-    public void save(Post post);
+    public Post save(Post post);
 
     public void deleteById(int id);
 

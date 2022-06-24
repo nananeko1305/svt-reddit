@@ -48,17 +48,5 @@ public class Report  {
     @JoinColumn(name = "commentId", referencedColumnName = "id")
     private Comment comment;
 
-    public Report(ReportDTO reportDTO){
-        this.id = reportDTO.getId();
-        this.reportReason = reportDTO.getReportReason();
-        this.timestamp = reportDTO.getTimestamp();
-        this.accepted = reportDTO.isAccepted();
-        this.user = new User(reportDTO.getUser());
-        this.post = new Post(reportDTO.getPost());
-        this.comment = new Comment(reportDTO.getComment());
-    }
-
-
-
     
 }

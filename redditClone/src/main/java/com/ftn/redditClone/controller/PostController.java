@@ -2,15 +2,10 @@ package com.ftn.redditClone.controller;
 
 import com.ftn.redditClone.model.dto.FlairDTO;
 import com.ftn.redditClone.model.dto.PostDTO;
-import com.ftn.redditClone.model.entity.Community;
-import com.ftn.redditClone.model.entity.Flair;
-import com.ftn.redditClone.model.entity.Post;
-import com.ftn.redditClone.model.entity.User;
+import com.ftn.redditClone.model.dto.ReactionDTO;
+import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
-import com.ftn.redditClone.service.CommunityService;
-import com.ftn.redditClone.service.DTOService;
-import com.ftn.redditClone.service.PostService;
-import com.ftn.redditClone.service.UserService;
+import com.ftn.redditClone.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +35,9 @@ public class PostController {
     @Autowired
     private DTOService dtoService;
 
+    @Autowired
+    private ReactionService reactionService;
+
     @GetMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> getOne(@RequestBody PostDTO postDTO){
 
@@ -47,6 +45,13 @@ public class PostController {
         postService.save(post);
 
         return new ResponseEntity<>(new PostDTO(), HttpStatus.FOUND);
+    }
+
+    @GetMapping(value = "{id}/reactions")
+    private ResponseEntity<List<ReactionDTO>> reactionsForPost(@PathVariable int id) {
+        Post post = postService.findById(id);
+        List<ReactionDTO> returnReactions = dtoService.reactionToDTO(post.getReactions());
+        return new ResponseEntity<>(returnReactions, HttpStatus.OK);
     }
 
     @GetMapping()
@@ -62,8 +67,25 @@ public class PostController {
         return new ResponseEntity<>(returnPosts, HttpStatus.OK);
     }
 
+    @PostMapping(value = "{id}/reactions")
+    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id){
+
+        String token = bearer.substring(7);
+        String username = tokenUtils.getUsernameFromToken(token);
+        Reaction reaction = new Reaction(reactionDTO);
+        User user = userService.findByUsername(username);
+        reaction.setUser(user);
+        reaction.setComment(null);
+        Post post = postService.findById(id);
+        reaction.setPost(post);
+        if(reactionService.alreadyVoted(user.getId(), post.getId()).isEmpty()){
+            reactionService.saveReaction(reaction);
+        }
+        return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
+    }
+
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Token") String bearer){
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Authorization") String bearer){
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
@@ -72,8 +94,9 @@ public class PostController {
         Post post = new Post(postDTO);
         post.setUser(user);
         post.setCommunity(community);
-        postService.save(post);
-        return new ResponseEntity<>(new PostDTO(post), HttpStatus.CREATED);
+        post.setFlair(null);
+        Post returnPost = postService.save(post);
+        return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);
     }
 
     @PutMapping(consumes = "application/json")

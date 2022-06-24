@@ -30,10 +30,4 @@ public class Rule {
     @JoinColumn(name = "communityId", referencedColumnName = "id")
     private Community community;
 
-    public Rule(RuleDTO ruleDTO) {
-        this.id = ruleDTO.getId();
-        this.description = ruleDTO.getDescription();
-        this.community = new Community(ruleDTO.getCommunity());
-    }
-
 }

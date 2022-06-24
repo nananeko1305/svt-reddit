@@ -37,15 +37,4 @@ public class Moderator{
     @JoinColumn(name = "communityId", referencedColumnName = "id", nullable = false)
     private Community community;
 
-
-
-    public Moderator(ModeratorDTO moderatorDTO){
-
-        UserService userService = new UserServiceImpl();
-        CommunityService communityService = new CommunityServiceImpl();
-
-        this.id = moderatorDTO.getId();
-        this.user = userService.findById(moderatorDTO.getUserID());
-        this.community = communityService.findById(moderatorDTO.getCommunityID());
-    }
 }

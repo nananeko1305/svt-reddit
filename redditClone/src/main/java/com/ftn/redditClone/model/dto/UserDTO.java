@@ -42,14 +42,6 @@ public class UserDTO {
 	@NotBlank
 	private String displayName;
 
-	private List<PostDTO> posts = new ArrayList<>();
-
-	private List<CommentDTO> comments = new ArrayList<>();
-
-	private List<ReportDTO> reports = new ArrayList<>();
-
-	private List<BannedDTO> banneds = new ArrayList<>();
-
 	public UserDTO(User user){
 
 		this.id = user.getId();
