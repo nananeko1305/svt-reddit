@@ -60,11 +60,11 @@ public class Post {
     @JoinColumn(name = "flairId", referencedColumnName = "id", nullable = true)
     private Flair flair;
 
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", orphanRemoval = true)
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Report> reports = new ArrayList<>();
 
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", orphanRemoval = true)
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Reaction> reactions = new ArrayList<>();
 

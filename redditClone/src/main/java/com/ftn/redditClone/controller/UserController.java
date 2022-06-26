@@ -71,9 +71,42 @@ public class UserController {
         return new ResponseEntity<>(returnUsers, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> findOne(@PathVariable int id) {
+    @GetMapping(value = "{id}/karma")
+    public ResponseEntity<Integer> returnKarma(@PathVariable int id){
 
+        int karma = 0;
+        User user = userService.findById(id);
+        for (Post post : user.getPosts()){
+            for (Reaction reaction: post.getReactions()){
+                if(reaction.getReactionType() == ReactionType.UPVOTE){
+                    karma++;
+                }else {
+                    karma--;
+                }
+            }
+        }
+        for (Comment comment : user.getComments()){
+            for (Reaction reaction: comment.getReactions()){
+                if(reaction.getReactionType() == ReactionType.UPVOTE){
+                    karma++;
+                }else {
+                    karma--;
+                }
+            }
+        }
+        return new ResponseEntity<>(karma, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> findOne(@PathVariable int id,
+                                           @RequestHeader(value = "Authorization", required = false) String bearer) {
+
+        if(bearer != null){
+            String token = bearer.substring(7);
+            String username = tokenUtils.getUsernameFromToken(token);
+            User user = userService.findByUsername(username);
+            return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
+        }
         User user = userService.findById(id);
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
     }
@@ -117,10 +150,6 @@ public class UserController {
 
         User user = userService.findById(id);
 
-        if (userDTO.getUsername() != null) {
-            user.setUsername(userDTO.getUsername());
-        }
-
         if (userDTO.getDescription() != null) {
             user.setDescription(userDTO.getDescription());
         }
@@ -132,31 +161,32 @@ public class UserController {
         if (userDTO.getDisplayName() != null) {
             user.setDisplayName(userDTO.getDisplayName());
         }
-
-        if (userDTO.getEmail() != null) {
-            user.setEmail(userDTO.getEmail());
-        }
-        userService.save(user);
+        userService.updateUser(user);
 
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
 
     }
 
     //	@PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @PutMapping(value = "/passwordChange", consumes = "application/json")
+    @PutMapping(value = "{id}/passwordChange", consumes = "application/json")
     public ResponseEntity<PasswordChangeDTO> updateUserPassword(@RequestBody PasswordChangeDTO passwordChangeDTO,
-                                                                @RequestHeader("Authorization") String token) {
+                                                                @RequestHeader("Authorization") String bearer, @PathVariable int id) {
+        User user = userService.findById(id);
+        if(user.getId() == id){
+            if (passwordChangeDTO.getOldPassword() == null || passwordChangeDTO.getNewPassword() == null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            } else {
 
-        if (passwordChangeDTO.getOldPassword() == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-
-            String username = tokenUtils.getUsernameFromToken(token.substring(7));
-            userService.changePassword(username, passwordChangeDTO.getNewPassword());
-
-            return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getUsername(),
-                    passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword()), HttpStatus.GONE);
+                BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
+                if (bcpe.matches(passwordChangeDTO.getOldPassword(), user.getPassword())) {
+                    userService.changePassword(user.getUsername(), passwordChangeDTO.getNewPassword());
+                }else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+                return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword(), passwordChangeDTO.getUser()), HttpStatus.OK);
+            }
         }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

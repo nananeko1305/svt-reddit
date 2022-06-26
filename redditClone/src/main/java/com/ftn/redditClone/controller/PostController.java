@@ -121,8 +121,10 @@ public class PostController {
         return new ResponseEntity<>(new PostDTO(), HttpStatus.ACCEPTED);
     }
 
-    @DeleteMapping(consumes = "application/json")
-    public void deletePost(@RequestBody PostDTO postDTO){
-        postService.deleteById(postDTO.getId());
+    @DeleteMapping(value = "/{id}")
+    public void deletePost(@PathVariable int id){
+
+        Post post = postService.findById(id);
+        postService.delete(post);
     }
 }
