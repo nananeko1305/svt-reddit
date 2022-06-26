@@ -1,6 +1,7 @@
 package com.ftn.redditClone.serviceImpl;
 
 import com.ftn.redditClone.model.entity.Post;
+import com.ftn.redditClone.model.entity.Reaction;
 import com.ftn.redditClone.repository.PostRepository;
 import com.ftn.redditClone.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deleteById(int id) {
-        postRepository.deleteById(id);
+    public void delete(Post post) {
+        postRepository.delete(post);
     }
 
     @Override

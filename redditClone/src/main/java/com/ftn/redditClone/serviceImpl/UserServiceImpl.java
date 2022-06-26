@@ -34,6 +34,8 @@ public class UserServiceImpl implements UserService{
 		user.setPassword(passwordEncoder.encode(user.getPassword()) );
 		userRepository.save(user);
 	}
+
+
 	
 	public void deleteById(int id) {
 		userRepository.deleteById(id);
@@ -56,5 +58,10 @@ public class UserServiceImpl implements UserService{
 	public User findByUsername(String username) {
 		return userRepository.findByUsername(username);
 	}
-	
+
+	@Override
+	public void updateUser(User user) {
+		userRepository.save(user);
+	}
+
 }

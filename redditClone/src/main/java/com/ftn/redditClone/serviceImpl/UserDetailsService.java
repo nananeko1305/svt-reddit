@@ -44,7 +44,7 @@ public class UserDetailsService implements org.springframework.security.core.use
 			throw new UsernameNotFoundException("There is no user with username " + username);
 		} else {
 			List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-			String role = user.getRole().toString();
+			String role = "ROLE_" + user.getRole().toString();
 			grantedAuthorities.add(new SimpleGrantedAuthority(role));
 
 			return new org.springframework.security.core.userdetails.User(user.getUsername().trim(),

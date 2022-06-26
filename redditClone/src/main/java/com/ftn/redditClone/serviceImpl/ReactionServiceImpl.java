@@ -23,4 +23,9 @@ public class ReactionServiceImpl implements ReactionService {
     public List<Reaction> alreadyVoted(int userID, int postID) {
         return reactionRepository.alreadyVoted(userID, postID);
     }
+
+    @Override
+    public void delete(Reaction reaction) {
+        reactionRepository.delete(reaction);
+    }
 }

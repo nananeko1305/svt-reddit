@@ -2,6 +2,7 @@ package com.ftn.redditClone.service;
 
 
 import com.ftn.redditClone.model.entity.Post;
+import com.ftn.redditClone.model.entity.Reaction;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ public interface PostService {
 
     public Post save(Post post);
 
-    public void deleteById(int id);
+    public void delete(Post post);
 
     public Post findById(int id);
 
