@@ -58,7 +58,7 @@ public class Comment {
         text = commentDTO.getText();
         timestamp = commentDTO.getTimestamp();
         isDeleted = commentDTO.isDeleted();
-        post = new Post(commentDTO.getPost());
-        user = new User(commentDTO.getUser());
+        post = null;
+        user = null;
     }
 }

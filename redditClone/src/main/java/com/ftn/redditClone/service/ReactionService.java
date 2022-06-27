@@ -11,5 +11,8 @@ public interface ReactionService {
 
     List<Reaction> alreadyVoted(int userID, int postID);
 
+    List<Reaction> alreadyVotedComment(int userID, int commentID);
+
     void delete(Reaction reaction);
+
 }

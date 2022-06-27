@@ -61,9 +61,9 @@ public class Community {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Post> posts = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "flairs_communities", joinColumns = @JoinColumn(name = "flairId", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "communityId", referencedColumnName = "id"))
-    private Set<Flair> flairs = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @JoinTable(name = "flairs_communities", joinColumns = @JoinColumn(name = "flair_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "community_id", referencedColumnName = "id"))
+    private List<Flair> flairs = new ArrayList<>();
 
 
     public Community(CommunityDTO communityDTO) {

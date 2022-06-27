@@ -1,5 +1,6 @@
 package com.ftn.redditClone.controller;
 
+import com.ftn.redditClone.model.dto.CommentDTO;
 import com.ftn.redditClone.model.dto.FlairDTO;
 import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.dto.ReactionDTO;
@@ -12,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("posts")
@@ -49,22 +48,33 @@ public class PostController {
 
     @GetMapping(value = "{id}/reactions")
     private ResponseEntity<List<ReactionDTO>> reactionsForPost(@PathVariable int id) {
-        Post post = postService.findById(id);
-        List<ReactionDTO> returnReactions = dtoService.reactionToDTO(post.getReactions());
-        return new ResponseEntity<>(returnReactions, HttpStatus.OK);
+        return new ResponseEntity<>(dtoService.reactionToDTO(postService.findById(id).getReactions()), HttpStatus.OK);
+    }
+
+    @GetMapping("{id}/comments")
+    private ResponseEntity<List<CommentDTO>> commentsForPost(@PathVariable int id){
+        List<Comment> comments = postService.findById(id).getComments();
+        List<Comment> returnComments = new ArrayList<>();
+        for (Comment comment: comments){
+            if (!comment.isDeleted())
+                returnComments.add(comment);
+        }
+        return new ResponseEntity<>(dtoService.commentToDTO(returnComments), HttpStatus.OK);
     }
 
     @GetMapping()
     public ResponseEntity<List<PostDTO>> findAll(){
 
         List<Post> posts = postService.findAll();
-        List<PostDTO> returnPosts = new ArrayList<>();
+        List<Post> returnPosts = new ArrayList<>();
 
-        for (Post post :
-                posts) {
-            returnPosts.add(new PostDTO(post));
+        for (Post post : posts) {
+            if(!post.getCommunity().isSuspended)
+                returnPosts.add(post);
         }
-        return new ResponseEntity<>(returnPosts, HttpStatus.OK);
+        List<PostDTO> returnPostsDTO = dtoService.postToDTO(returnPosts);
+//        Collections.shuffle(returnPosts,new Random());
+        return new ResponseEntity<>(returnPostsDTO, HttpStatus.OK);
     }
 
     @PostMapping(value = "{id}/reactions")

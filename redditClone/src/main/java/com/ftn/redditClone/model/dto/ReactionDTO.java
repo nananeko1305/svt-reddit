@@ -27,6 +27,7 @@ public class ReactionDTO {
         this.user = new UserDTO(reaction.getUser());
         if(reaction.getComment() != null)
             this.comment = new CommentDTO(reaction.getComment());
-        this.post = new PostDTO(reaction.getPost());
+        if(reaction.getPost() != null)
+            this.post = new PostDTO(reaction.getPost());
     }
 }

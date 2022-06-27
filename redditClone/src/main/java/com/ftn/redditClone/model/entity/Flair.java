@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 
@@ -33,10 +35,14 @@ public class Flair  {
     private String name;
 
     @OneToMany(mappedBy = "flair")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Post> posts = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "flairs", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "flairs", fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     private Set<Community> communities = new HashSet<>();
+
+    @Column(name = "isDeleted")
+    private boolean isDeleted;
 
     public Flair(FlairDTO flairDTO){
         id = flairDTO.getId();

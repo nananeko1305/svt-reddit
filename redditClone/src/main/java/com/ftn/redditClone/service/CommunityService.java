@@ -16,4 +16,6 @@ public interface CommunityService {
 	public Community findById(int id);
 
 	public Community updateCommunity(Community community);
+
+	List<Community> findAllRandom();
 }

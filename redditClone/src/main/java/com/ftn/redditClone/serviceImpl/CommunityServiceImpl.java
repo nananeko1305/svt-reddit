@@ -43,5 +43,10 @@ public class CommunityServiceImpl implements CommunityService{
 		return communityRepository.save(community);
 	}
 
+	@Override
+	public List<Community> findAllRandom() {
+		return communityRepository.findAllRandom();
+	}
+
 
 }

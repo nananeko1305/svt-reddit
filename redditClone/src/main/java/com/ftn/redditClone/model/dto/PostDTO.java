@@ -32,6 +32,8 @@ public class PostDTO {
     private UserDTO user;
     private FlairDTO flair;
 
+    private boolean isDeleted;
+
     public PostDTO(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
@@ -42,6 +44,7 @@ public class PostDTO {
         this.user = new UserDTO(post.getUser());
         if(post.getFlair() != null)
             this.flair = new FlairDTO(post.getFlair());
+        this.isDeleted = post.isDeleted();
     }
 
 }

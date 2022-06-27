@@ -13,4 +13,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, Integer> {
     @Query(value = "SELECT * FROM jpa.reaction r WHERE r.user_id = ?1 AND r.post_id = ?2", nativeQuery = true)
     List<Reaction> alreadyVoted(int userID, int postID);
 
+    @Query(value = "SELECT * FROM jpa.reaction r WHERE r.user_id = ?1 AND r.comment_id = ?2", nativeQuery = true)
+    List<Reaction> alreadyVotedComment(int userID, int commentID);
+
 }

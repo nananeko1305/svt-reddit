@@ -30,4 +30,14 @@ public class Rule {
     @JoinColumn(name = "communityId", referencedColumnName = "id")
     private Community community;
 
+    @Column(name = "isDeleted")
+    private boolean isDeleted;
+
+    public Rule(RuleDTO ruleDTO){
+        id = ruleDTO.getId();
+        description = ruleDTO.getDescription();
+        community = null;
+        isDeleted = ruleDTO.isDeleted();
+    }
+
 }

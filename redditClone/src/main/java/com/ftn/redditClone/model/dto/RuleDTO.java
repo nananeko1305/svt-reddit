@@ -16,10 +16,16 @@ public class RuleDTO {
     private int id;
     private String description;
     private CommunityDTO community;
+    private boolean isDeleted;
 
     public RuleDTO(Rule rule) {
         this.id = rule.getId();
         this.description = rule.getDescription();
-        this.community = new CommunityDTO(rule.getCommunity());
+        if(rule.getCommunity() == null){
+            this.community = null;
+        }else {
+            this.community = new CommunityDTO(rule.getCommunity());
+        }
+        this.isDeleted = rule.isDeleted();
     }
 }

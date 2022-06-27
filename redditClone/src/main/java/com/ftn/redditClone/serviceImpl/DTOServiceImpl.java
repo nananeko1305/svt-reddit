@@ -2,7 +2,9 @@ package com.ftn.redditClone.serviceImpl;
 
 import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
+import com.ftn.redditClone.service.CommunityService;
 import com.ftn.redditClone.service.DTOService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.List;
 
 @Service
 public class DTOServiceImpl implements DTOService {
+
 
 
     @Override
@@ -34,7 +37,8 @@ public class DTOServiceImpl implements DTOService {
     public List<CommunityDTO> communityToDTO(List<Community> communities) {
         List<CommunityDTO> communityDTO = new ArrayList<>();
         for (Community community: communities){
-            communityDTO.add(new CommunityDTO(community));
+            CommunityDTO community1DTO = new CommunityDTO(community);
+            communityDTO.add(community1DTO);
         }
         return communityDTO;
     }
@@ -43,7 +47,8 @@ public class DTOServiceImpl implements DTOService {
     public List<FlairDTO> flairToDTO(List<Flair> flairs) {
         List<FlairDTO> flairDTO = new ArrayList<>();
         for (Flair flair: flairs){
-            flairDTO.add(new FlairDTO(flair));
+            FlairDTO flairDTO1 = new FlairDTO(flair);
+            flairDTO.add(flairDTO1);
         }
         return flairDTO;
     }
@@ -88,7 +93,8 @@ public class DTOServiceImpl implements DTOService {
     public List<RuleDTO> ruleToDTO(List<Rule> rules) {
         List<RuleDTO> ruleDTO = new ArrayList<>();
         for (Rule rule: rules){
-            ruleDTO.add(new RuleDTO(rule));
+            RuleDTO ruleDTO1 = new RuleDTO(rule);
+            ruleDTO.add(ruleDTO1);
         }
         return ruleDTO;
     }
