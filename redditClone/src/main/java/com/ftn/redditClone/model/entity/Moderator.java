@@ -37,4 +37,8 @@ public class Moderator{
     @JoinColumn(name = "communityId", referencedColumnName = "id", nullable = false)
     private Community community;
 
+    @Column(name = "isDeleted")
+    private boolean isDeleted;
+
+
 }

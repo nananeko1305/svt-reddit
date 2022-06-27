@@ -6,10 +6,7 @@ import com.ftn.redditClone.model.entity.Post;
 import com.ftn.redditClone.model.entity.Reaction;
 import com.ftn.redditClone.model.entity.User;
 import com.ftn.redditClone.security.TokenUtils;
-import com.ftn.redditClone.service.DTOService;
-import com.ftn.redditClone.service.PostService;
-import com.ftn.redditClone.service.ReactionService;
-import com.ftn.redditClone.service.UserService;
+import com.ftn.redditClone.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +34,10 @@ public class ReactionController {
     @Autowired
     private DTOService dtoService;
 
+    @Autowired
+    private CommentService commentService;
+
+
     @PostMapping()
     private ResponseEntity<ReactionDTO> saveReaction(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO) {
 
@@ -45,9 +46,16 @@ public class ReactionController {
         //podaci za save
         Reaction reaction = new Reaction(reactionDTO);
         reaction.setUser(userService.findByUsername(username));
-        Post post = postService.findById(reactionDTO.getPost().getId());
-        reaction.setPost(post);
-        reaction.setComment(null);
+        if(reactionDTO.getPost() != null){
+            Post post = postService.findById(reactionDTO.getPost().getId());
+            reaction.setPost(post);
+            reaction.setComment(null);
+        }else{
+            Comment comment = commentService.findById(reactionDTO.getComment().getId()).get();
+            reaction.setComment(comment);
+            reaction.setPost(null);
+        }
+
         reactionService.saveReaction(reaction);
 
         return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);

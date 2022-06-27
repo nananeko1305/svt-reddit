@@ -18,10 +18,12 @@ public class FlairDTO {
 
     private int id;
     private String name;
+    private boolean isDeleted;
 
     public FlairDTO(Flair flair){
         this.id = flair.getId();
         this.name = flair.getName();
+        this.isDeleted = flair.isDeleted();
 
     }
 }

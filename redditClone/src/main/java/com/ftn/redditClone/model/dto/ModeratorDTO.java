@@ -17,11 +17,13 @@ public class ModeratorDTO {
     private int id;
     private int userID;
     private int communityID;
+    private boolean isDeleted;
 
     public ModeratorDTO(Moderator moderator){
         this.id = moderator.getId();
         this.userID = moderator.getUser().getId();
         this.communityID = moderator.getCommunity().getId();
+        this.isDeleted = moderator.isDeleted();
     }
 
 }

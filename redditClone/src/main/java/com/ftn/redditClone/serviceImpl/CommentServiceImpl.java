@@ -4,10 +4,12 @@ import com.ftn.redditClone.model.entity.Comment;
 import com.ftn.redditClone.repository.CommentRepository;
 import com.ftn.redditClone.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class CommentServiceImpl implements CommentService {
 
     @Autowired

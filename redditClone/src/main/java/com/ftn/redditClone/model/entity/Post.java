@@ -68,6 +68,13 @@ public class Post {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Reaction> reactions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", orphanRemoval = true)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<Comment> comments = new ArrayList<>();
+
+    @Column(name = "isDeleted")
+    private boolean isDeleted;
+
     public Post(PostDTO postDTO) {
 
         title = postDTO.getTitle();
