@@ -42,6 +42,9 @@ public class CommunityController {
     @Autowired
     private FlairService flairService;
 
+    @Autowired
+    private RuleService ruleService;
+
     @GetMapping(value = "/{id}")
     public ResponseEntity<CommunityDTO> findOne(@PathVariable int id) {
         Community community = communityService.findById(id);
@@ -79,8 +82,67 @@ public class CommunityController {
     @GetMapping("{id}/flairs")
     public ResponseEntity<List<FlairDTO>> returnFlairsForCommunity(@PathVariable int id){
         Community community = communityService.findById(id);
-        return new ResponseEntity<>(dtoService.flairToDTO(community.getFlairs()), HttpStatus.OK);
+        List<Flair> returnFlairs = new ArrayList<>();
+        for(Flair flair: community.getFlairs()){
+            if(!flair.isDeleted()){
+                returnFlairs.add(flair);
+            }
+        }
+        return new ResponseEntity<>(dtoService.flairToDTO(returnFlairs), HttpStatus.OK);
     }
+
+    @PostMapping("{id}/flairs")
+    public ResponseEntity<FlairDTO> addFlairToCommunity(@PathVariable int id, @RequestBody FlairDTO flairDTO, @RequestHeader("Authorization") String bearer){
+        Community community = communityService.findById(id);
+        Set<Community> communities = new HashSet<>();
+        communities.add(community);
+        Flair flair = new Flair(flairDTO);
+        flair.setCommunities(communities);
+        community.getFlairs().add(flair);
+        communityService.save(community);
+        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}/flairs/{flairId}")
+    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer){
+        Flair flair = flairService.findOne(flairId).get();
+        flair.setDeleted(true);
+        flairService.save(flair);
+        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
+    }
+
+    @GetMapping("{id}/rules")
+    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id){
+        Community community = communityService.findById(id);
+        List<Rule> returnRules = new ArrayList<>();
+        for (Rule rule: community.getRules()){
+            if(!rule.isDeleted()){
+                returnRules.add(rule);
+            }
+        }
+        return new ResponseEntity<>(dtoService.ruleToDTO(returnRules), HttpStatus.OK);
+    }
+
+    @PostMapping("{id}/rules")
+    public ResponseEntity<RuleDTO> addRulesToCommunity(@PathVariable int id, @RequestBody RuleDTO ruleDTO, @RequestHeader("Authorization") String bearer){
+        Community community = communityService.findById(id);
+        Rule rule = new Rule(ruleDTO);
+        rule.setCommunity(community);
+        community.getRules().add(rule);
+        communityService.save(community);
+        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}/rules/{ruleId}")
+    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer){
+        Community community = communityService.findById(id);
+        Rule rule = ruleService.findOne(ruleId).get();
+        rule.setDeleted(true);
+        rule.setCommunity(community);
+        ruleService.save(rule);
+        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
+    }
+
 
     //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping(consumes = "application/json")
@@ -88,7 +150,9 @@ public class CommunityController {
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
+        communityDTO.setId(null);
         Community community = new Community(communityDTO);
+        community = communityService.save(community);
         Moderator moderator = new Moderator(0, userService.findByUsername(username), community, false);
         List<Flair> flairs = new ArrayList<>();
         List<Rule> rules = new ArrayList<>();
@@ -101,7 +165,8 @@ public class CommunityController {
             for(RuleDTO ruleDTO: communityDTO.getRules()){
                 Rule rule = new Rule(ruleDTO);
                 rule.setCommunity(community);
-                rules.add(new Rule(ruleDTO));
+                rule.setDescription(ruleDTO.getDescription());
+                rules.add(rule);
             }
         }
         community.setRules(rules);
@@ -111,9 +176,6 @@ public class CommunityController {
         CommunityDTO communityDTO1 = new CommunityDTO(community);
         communityDTO1.setFlairs(dtoService.flairToDTO(flairs));
         List<RuleDTO> ruleDTOS = dtoService.ruleToDTO(rules);
-        for (RuleDTO ruleDTO: ruleDTOS){
-            ruleDTO.setCommunity(new CommunityDTO(community));
-        }
         communityDTO1.setRules(ruleDTOS);
         return new ResponseEntity<>(communityDTO1, HttpStatus.OK);
     }

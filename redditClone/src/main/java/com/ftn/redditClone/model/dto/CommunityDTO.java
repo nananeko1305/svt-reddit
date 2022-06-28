@@ -24,7 +24,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class CommunityDTO {
 
-    private int id;
+    private Integer id;
     private String name;
     private String description;
     private LocalDate creationDate;
@@ -33,6 +33,8 @@ public class CommunityDTO {
     private List<FlairDTO> flairs = new ArrayList<>();
 
     private List<RuleDTO> rules = new ArrayList<>();
+
+    private List<ModeratorDTO> moderators = new ArrayList<>();
 
 
     public CommunityDTO(Community community) {
@@ -52,6 +54,11 @@ public class CommunityDTO {
             this.rules = null;
         }else {
             this.rules = dtoService.ruleToDTO(community.getRules());
+        }
+        if(community.getModerators().isEmpty()){
+            this.moderators = null;
+        }else{
+            this.moderators = dtoService.moderatorToDTO(community.getModerators());
         }
     }
 

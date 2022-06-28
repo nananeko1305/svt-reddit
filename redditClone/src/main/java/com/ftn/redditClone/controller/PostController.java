@@ -37,6 +37,9 @@ public class PostController {
     @Autowired
     private ReactionService reactionService;
 
+    @Autowired
+    private FlairService flairService;
+
     @GetMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> getOne(@RequestBody PostDTO postDTO){
 
@@ -104,7 +107,11 @@ public class PostController {
         Post post = new Post(postDTO);
         post.setUser(user);
         post.setCommunity(community);
-        post.setFlair(null);
+        if(postDTO.getFlair().getId() != 0){
+            post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
+        }else {
+            post.setFlair(null);
+        }
         Post returnPost = postService.save(post);
         return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);
     }

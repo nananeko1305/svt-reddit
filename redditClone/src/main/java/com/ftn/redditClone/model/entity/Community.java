@@ -28,7 +28,7 @@ public class Community {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private int id;
+    private Integer id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -53,7 +53,7 @@ public class Community {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Banned> banneds = new ArrayList<>();
 
-    @OneToMany(mappedBy = "community")
+    @OneToMany(mappedBy = "community", cascade = {CascadeType.ALL})
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Rule> rules = new ArrayList<>();
 
