@@ -16,5 +16,7 @@ public interface PostService {
 
     public Post findById(int id);
 
+    List<Post> sortedList(String sortType);
+
 
 }

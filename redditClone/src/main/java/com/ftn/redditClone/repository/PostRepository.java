@@ -10,4 +10,9 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
 
+    @Query(value = "SELECT * from posts p ORDER BY (select COUNT(*) from reaction r WHERE r.post_id = p.id) DESC", nativeQuery = true)
+    List<Post> sortedTop();
+
+    @Query(value = "SELECT * from posts p ORDER BY (select COUNT(*) from reaction r WHERE r.post_id = p.id order by r.timestamp)  DESC ", nativeQuery = true)
+    List<Post> sortedHot();
 }

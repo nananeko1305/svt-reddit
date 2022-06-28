@@ -13,4 +13,6 @@ public interface CommentService {
     Optional<Comment> findById(int id);
     Comment updateComment(Comment Comment);
 
+    List<Comment> soredList(String sortType, int id);
+
 }

@@ -1,12 +1,10 @@
 package com.ftn.redditClone.controller;
 
-import com.ftn.redditClone.model.dto.CommentDTO;
-import com.ftn.redditClone.model.dto.FlairDTO;
-import com.ftn.redditClone.model.dto.PostDTO;
-import com.ftn.redditClone.model.dto.ReactionDTO;
+import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
+import org.hibernate.mapping.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +37,8 @@ public class PostController {
 
     @Autowired
     private FlairService flairService;
+    @Autowired
+    private CommentService commentService;
 
     @GetMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> getOne(@RequestBody PostDTO postDTO){
@@ -63,6 +63,30 @@ public class PostController {
                 returnComments.add(comment);
         }
         return new ResponseEntity<>(dtoService.commentToDTO(returnComments), HttpStatus.OK);
+    }
+
+    @GetMapping("sort/{sortType}")
+    private ResponseEntity<List<PostDTO>> sortedPosts(@PathVariable String sortType){
+        List<Post> posts = new ArrayList<>();
+        if(sortType.equals("Top")){
+            posts = postService.sortedList("Top");
+        }else if(sortType.equals("Hot")){
+            posts = postService.sortedList("Hot");
+        }
+        return new ResponseEntity<>(dtoService.postToDTO(posts), HttpStatus.OK);
+    }
+
+    @GetMapping("{id}/comments/sort/{sortType}")
+    private ResponseEntity<List<CommentDTO>> sortedCommentForPost(@PathVariable int id, @PathVariable String sortType){
+        List<Comment> comments = new ArrayList<>();
+        if(sortType.equals("Top")){
+            comments = commentService.soredList("Top", id);
+        }else if(sortType.equals("New")){
+            comments = commentService.soredList("New", id);
+        }else if(sortType.equals("Old")){
+            comments = commentService.soredList("Old", id);
+        }
+        return new ResponseEntity<>(dtoService.commentToDTO(comments), HttpStatus.OK);
     }
 
     @GetMapping()

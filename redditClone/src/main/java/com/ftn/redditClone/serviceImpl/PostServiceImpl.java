@@ -35,5 +35,14 @@ public class PostServiceImpl implements PostService {
         return postRepository.findById(id).orElseGet(null);
     }
 
+    @Override
+    public List<Post> sortedList(String sortType) {
+        if (sortType.equals("Top")) {
+            return postRepository.sortedTop();
+        } else {
+            return postRepository.sortedHot();
+        }
+    }
+
 
 }
