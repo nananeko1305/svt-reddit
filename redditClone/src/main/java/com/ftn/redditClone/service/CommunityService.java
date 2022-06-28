@@ -9,7 +9,7 @@ public interface CommunityService {
 
 	public List<Community> findAll();
 	
-	public void save(Community community);
+	public Community save(Community community);
 	
 	public void deleteById(int id);
 	
