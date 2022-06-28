@@ -94,11 +94,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 
 //                .antMatchers(HttpMethod.DELETE, "/community/delete/").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/").permitAll()
+                .antMatchers(HttpMethod.GET, "/posts/sort/{sortType}").permitAll()
                 .antMatchers(HttpMethod.POST, "/posts/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.PUT, "/posts/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.GET, "/posts/{id}/reactions").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/findAll/").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/{id}/comments/").permitAll()
+                .antMatchers(HttpMethod.GET, "/posts/{id}/comments/sort/{sortType}").permitAll()
 //                .antMatchers(HttpMethod.DELETE, "/posts/{id}").permitAll()
                 .antMatchers(HttpMethod.POST, "/reactions/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.GET, "/comments/").permitAll()
@@ -107,6 +109,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.POST, "/comments/{id}/reactions/").permitAll()
                 .antMatchers(HttpMethod.GET, "/flairs/{id}").permitAll()
                 .anyRequest().authenticated();
+
+        //sort/{sortType}
 
         httpSecurity.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
     }
