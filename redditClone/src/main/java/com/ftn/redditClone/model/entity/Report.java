@@ -48,5 +48,10 @@ public class Report  {
     @JoinColumn(name = "commentId", referencedColumnName = "id")
     private Comment comment;
 
-    
+    public Report(ReportDTO reportDTO){
+        id = reportDTO.getId();
+        reportReason = reportDTO.getReportReason();
+        timestamp = reportDTO.getTimestamp();
+        accepted = reportDTO.isAccepted();
+    }
 }

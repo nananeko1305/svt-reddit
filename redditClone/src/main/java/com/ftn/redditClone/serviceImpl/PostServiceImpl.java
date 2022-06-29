@@ -44,5 +44,14 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    @Override
+    public List<Post> sortedPostsForCommunity(int communityId, String sortedType) {
+        if(sortedType.equals("Top")){
+            return postRepository.sortedTopForCommunity(communityId);
+        }else {
+            return postRepository.sortedHotForCommunity(communityId);
+        }
+    }
+
 
 }

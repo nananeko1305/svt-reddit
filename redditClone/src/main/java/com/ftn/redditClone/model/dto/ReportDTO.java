@@ -27,7 +27,16 @@ public class ReportDTO {
         this.timestamp = report.getTimestamp();
         this.accepted = report.isAccepted();
         this.user = new UserDTO(report.getUser());
-        this.post = new PostDTO(report.getPost());
-        this.comment = new CommentDTO(report.getComment());
+        if(report.getPost() == null){
+            this.post = null;
+        }else{
+            this.post = new PostDTO(report.getPost());
+        }
+        if(report.getComment() == null){
+            this.comment = null;
+        }else {
+            this.comment = new CommentDTO(report.getComment());
+        }
+
     }
 }

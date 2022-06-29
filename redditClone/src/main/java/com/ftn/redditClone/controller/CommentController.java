@@ -65,6 +65,12 @@ public class CommentController {
         return new ResponseEntity<>(reactions, HttpStatus.OK);
     }
 
+    @GetMapping(value = "{id}")
+    private ResponseEntity<CommentDTO> findOne(@PathVariable int id){
+         Comment comment = commentService.findById(id).get();
+         return new ResponseEntity<>(new CommentDTO(comment), HttpStatus.OK);
+    }
+
     @PostMapping()
     public ResponseEntity<CommentDTO> saveComment(@RequestBody CommentDTO commentDTO, @RequestHeader("Authorization") String bearer){
 

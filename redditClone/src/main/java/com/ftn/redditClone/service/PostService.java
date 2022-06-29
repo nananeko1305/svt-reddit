@@ -18,5 +18,7 @@ public interface PostService {
 
     List<Post> sortedList(String sortType);
 
+    List<Post> sortedPostsForCommunity(int communityId, String sortedType);
+
 
 }
