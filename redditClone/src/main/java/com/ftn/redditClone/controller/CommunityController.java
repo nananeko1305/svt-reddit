@@ -59,10 +59,25 @@ public class CommunityController {
     public ResponseEntity<List<PostDTO>> findAllPostsForCommunity(@PathVariable int id) {
 
         Community community = communityService.findById(id);
-        List<PostDTO> returnPosts = dtoService.postToDTO(community.getPosts());
+        List<Post> posts = community.getPosts();
+        List<Post> returnPosts = new ArrayList<>();
+        for(Post post : posts){
+            if(!post.isDeleted()){
+                returnPosts.add(post);
+            }
+        }
+        return new ResponseEntity<>(dtoService.postToDTO(returnPosts), HttpStatus.OK);
+    }
 
-        return new ResponseEntity<>(returnPosts, HttpStatus.OK);
-
+    @GetMapping("{id}/posts/sort/{sortType}")
+    public ResponseEntity<List<PostDTO>> findAllPostsForCommunitySorted(@PathVariable int id, @PathVariable String sortType){
+        List<Post> posts = new ArrayList<>();
+        if(sortType.equals("Top")){
+            posts = postService.sortedPostsForCommunity(id,"Top");
+        }else {
+            posts = postService.sortedPostsForCommunity(id, "Hot");
+        }
+        return new ResponseEntity<>(dtoService.postToDTO(posts), HttpStatus.OK);
     }
 
     @GetMapping()

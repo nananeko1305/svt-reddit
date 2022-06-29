@@ -81,6 +81,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.PUT, "/users/{id}/passwordChange/").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/{id}/posts/sort/{sortType}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}/suspend").hasAnyRole("ADMIN")
                 .antMatchers(HttpMethod.GET, "/community/{id}/posts").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}/flairs").permitAll()
@@ -94,6 +95,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 
 //                .antMatchers(HttpMethod.DELETE, "/community/delete/").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/").permitAll()
+                .antMatchers(HttpMethod.GET, "/posts/{id}").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/sort/{sortType}").permitAll()
                 .antMatchers(HttpMethod.POST, "/posts/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.PUT, "/posts/").hasAnyRole("ADMIN", "MODERATOR", "USER")
@@ -101,13 +103,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.GET, "/posts/findAll/").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/{id}/comments/").permitAll()
                 .antMatchers(HttpMethod.GET, "/posts/{id}/comments/sort/{sortType}").permitAll()
-//                .antMatchers(HttpMethod.DELETE, "/posts/{id}").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/posts/{id}").permitAll()
                 .antMatchers(HttpMethod.POST, "/reactions/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.GET, "/comments/").permitAll()
+                .antMatchers(HttpMethod.GET, "/comments/{id}").permitAll()
                 .antMatchers(HttpMethod.POST, "/comments/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.GET, "/comments/{id}/reactions/").permitAll()
                 .antMatchers(HttpMethod.POST, "/comments/{id}/reactions/").permitAll()
                 .antMatchers(HttpMethod.GET, "/flairs/{id}").permitAll()
+                .antMatchers(HttpMethod.POST, "/reports").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .anyRequest().authenticated();
 
         //sort/{sortType}

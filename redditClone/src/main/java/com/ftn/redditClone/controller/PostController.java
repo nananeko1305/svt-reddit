@@ -40,13 +40,12 @@ public class PostController {
     @Autowired
     private CommentService commentService;
 
-    @GetMapping(consumes = "application/json")
-    public ResponseEntity<PostDTO> getOne(@RequestBody PostDTO postDTO){
+    @GetMapping(value = "{id}")
+    public ResponseEntity<PostDTO> getOne(@PathVariable int id){
 
-        Post post = postService.findById(postDTO.getId());
-        postService.save(post);
+        Post post = postService.findById(id);
 
-        return new ResponseEntity<>(new PostDTO(), HttpStatus.FOUND);
+        return new ResponseEntity<>(new PostDTO(postService.findById(id)), HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/reactions")
@@ -96,7 +95,7 @@ public class PostController {
         List<Post> returnPosts = new ArrayList<>();
 
         for (Post post : posts) {
-            if(!post.getCommunity().isSuspended)
+            if(!post.isDeleted())
                 returnPosts.add(post);
         }
         List<PostDTO> returnPostsDTO = dtoService.postToDTO(returnPosts);
@@ -163,9 +162,12 @@ public class PostController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public void deletePost(@PathVariable int id){
+    public ResponseEntity<PostDTO> deletePost(@PathVariable int id){
 
         Post post = postService.findById(id);
-        postService.delete(post);
+        post.setDeleted(true);
+        postService.save(post);
+
+        return new ResponseEntity<>(new PostDTO(post), HttpStatus.OK);
     }
 }
