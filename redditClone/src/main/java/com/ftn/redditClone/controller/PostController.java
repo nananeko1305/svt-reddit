@@ -44,8 +44,7 @@ public class PostController {
     public ResponseEntity<PostDTO> getOne(@PathVariable int id){
 
         Post post = postService.findById(id);
-
-        return new ResponseEntity<>(new PostDTO(postService.findById(id)), HttpStatus.OK);
+        return new ResponseEntity<>(new PostDTO(post), HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/reactions")
@@ -104,17 +103,24 @@ public class PostController {
     }
 
     @PostMapping(value = "{id}/reactions")
-    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id){
+    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id) {
 
+        Post post = postService.findById(id);
+        Community community = communityService.findById(post.getCommunity().getId());
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
         Reaction reaction = new Reaction(reactionDTO);
         User user = userService.findByUsername(username);
         reaction.setUser(user);
         reaction.setComment(null);
-        Post post = postService.findById(id);
         reaction.setPost(post);
-        if(reactionService.alreadyVoted(user.getId(), post.getId()).isEmpty()){
+        for (Banned banned : community.getBanneds()) {
+            if (banned.getUser().getId() == user.getId()) {
+                return new ResponseEntity<>(new ReactionDTO(), HttpStatus.OK);
+
+            }
+        }
+        if (reactionService.alreadyVoted(user.getId(), post.getId()).isEmpty()) {
             reactionService.saveReaction(reaction);
         }
         return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
@@ -134,6 +140,12 @@ public class PostController {
             post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
         }else {
             post.setFlair(null);
+        }
+        for (Banned banned : community.getBanneds()) {
+            if (banned.getUser().getId() == user.getId()) {
+                return new ResponseEntity<>(new PostDTO(), HttpStatus.OK);
+
+            }
         }
         Post returnPost = postService.save(post);
         return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);

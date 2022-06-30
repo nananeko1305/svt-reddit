@@ -38,6 +38,7 @@ public class DTOServiceImpl implements DTOService {
         List<CommunityDTO> communityDTO = new ArrayList<>();
         for (Community community: communities){
             CommunityDTO community1DTO = new CommunityDTO(community);
+            community1DTO.setModerators(moderatorToDTO(community.getModerators()));
             communityDTO.add(community1DTO);
         }
         return communityDTO;
@@ -57,7 +58,8 @@ public class DTOServiceImpl implements DTOService {
     public List<ModeratorDTO> moderatorToDTO(List<Moderator> moderators) {
         List<ModeratorDTO> moderatorDTO = new ArrayList<>();
         for (Moderator moderator: moderators){
-            moderatorDTO.add(new ModeratorDTO(moderator));
+            ModeratorDTO moderatorDTO1 = new ModeratorDTO(moderator);
+            moderatorDTO.add(moderatorDTO1);
         }
         return moderatorDTO;
     }

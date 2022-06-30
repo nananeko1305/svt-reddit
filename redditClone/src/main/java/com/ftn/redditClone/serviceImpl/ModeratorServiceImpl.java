@@ -44,4 +44,9 @@ public class ModeratorServiceImpl implements ModeratorService {
     public Moderator findByUsername(String username) {
         return null;
     }
+
+    @Override
+    public Moderator findByUserId(int id, int communityId) {
+        return moderatorRepository.findByUserId(id, communityId);
+    }
 }

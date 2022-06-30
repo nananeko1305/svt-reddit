@@ -19,4 +19,6 @@ public interface ModeratorService {
 
     Moderator findByUsername(String username);
 
+    Moderator findByUserId(int id, int communityId);
+
 }

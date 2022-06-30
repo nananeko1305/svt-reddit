@@ -1,9 +1,7 @@
 package com.ftn.redditClone.controller;
 
 import antlr.Token;
-import com.ftn.redditClone.model.dto.FlairDTO;
-import com.ftn.redditClone.model.dto.PostDTO;
-import com.ftn.redditClone.model.dto.RuleDTO;
+import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
@@ -11,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.ftn.redditClone.model.dto.CommunityDTO;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -45,13 +41,18 @@ public class CommunityController {
     @Autowired
     private RuleService ruleService;
 
+    @Autowired
+    private ReportService reportService;
+
     @GetMapping(value = "/{id}")
     public ResponseEntity<CommunityDTO> findOne(@PathVariable int id) {
         Community community = communityService.findById(id);
         if (community.isSuspended == true) {
             return new ResponseEntity<>(new CommunityDTO(), HttpStatus.NOT_FOUND);
         } else {
-            return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.OK);
+            CommunityDTO communityDTO = new CommunityDTO(community);
+            communityDTO.setModerators(dtoService.moderatorToDTO(community.getModerators()));
+            return new ResponseEntity<>(communityDTO, HttpStatus.OK);
         }
     }
 
@@ -61,8 +62,8 @@ public class CommunityController {
         Community community = communityService.findById(id);
         List<Post> posts = community.getPosts();
         List<Post> returnPosts = new ArrayList<>();
-        for(Post post : posts){
-            if(!post.isDeleted()){
+        for (Post post : posts) {
+            if (!post.isDeleted()) {
                 returnPosts.add(post);
             }
         }
@@ -70,11 +71,11 @@ public class CommunityController {
     }
 
     @GetMapping("{id}/posts/sort/{sortType}")
-    public ResponseEntity<List<PostDTO>> findAllPostsForCommunitySorted(@PathVariable int id, @PathVariable String sortType){
+    public ResponseEntity<List<PostDTO>> findAllPostsForCommunitySorted(@PathVariable int id, @PathVariable String sortType) {
         List<Post> posts = new ArrayList<>();
-        if(sortType.equals("Top")){
-            posts = postService.sortedPostsForCommunity(id,"Top");
-        }else {
+        if (sortType.equals("Top")) {
+            posts = postService.sortedPostsForCommunity(id, "Top");
+        } else {
             posts = postService.sortedPostsForCommunity(id, "Hot");
         }
         return new ResponseEntity<>(dtoService.postToDTO(posts), HttpStatus.OK);
@@ -95,19 +96,45 @@ public class CommunityController {
     }
 
     @GetMapping("{id}/flairs")
-    public ResponseEntity<List<FlairDTO>> returnFlairsForCommunity(@PathVariable int id){
+    public ResponseEntity<List<FlairDTO>> returnFlairsForCommunity(@PathVariable int id) {
         Community community = communityService.findById(id);
         List<Flair> returnFlairs = new ArrayList<>();
-        for(Flair flair: community.getFlairs()){
-            if(!flair.isDeleted()){
+        for (Flair flair : community.getFlairs()) {
+            if (!flair.isDeleted()) {
                 returnFlairs.add(flair);
             }
         }
         return new ResponseEntity<>(dtoService.flairToDTO(returnFlairs), HttpStatus.OK);
     }
 
+    @GetMapping("{id}/reports/{reportType}")
+    public ResponseEntity<List<ReportDTO>> getReportsForCommunity(@PathVariable int id, @PathVariable int reportType) {
+
+        Community community = communityService.findById(id);
+        List<Report> reports = new ArrayList<>();
+        for (Post post : community.getPosts()) {
+            if (reportType == 1) {
+                for (Comment comment : post.getComments()) {
+                    for (Report report : comment.getReports()) {
+                        if (report.getComment() != null && !report.isAccepted() && !comment.isDeleted()) {
+                            reports.add(report);
+                        }
+                    }
+                }
+            } else {
+                for (Report report : post.getReports()) {
+                    if (report.getPost() != null && !report.isAccepted() && !post.isDeleted()) {
+                        reports.add(report);
+                    }
+                }
+            }
+        }
+
+        return new ResponseEntity<>(dtoService.reportToDTO(reports), HttpStatus.OK);
+    }
+
     @PostMapping("{id}/flairs")
-    public ResponseEntity<FlairDTO> addFlairToCommunity(@PathVariable int id, @RequestBody FlairDTO flairDTO, @RequestHeader("Authorization") String bearer){
+    public ResponseEntity<FlairDTO> addFlairToCommunity(@PathVariable int id, @RequestBody FlairDTO flairDTO, @RequestHeader("Authorization") String bearer) {
         Community community = communityService.findById(id);
         Set<Community> communities = new HashSet<>();
         communities.add(community);
@@ -119,7 +146,7 @@ public class CommunityController {
     }
 
     @DeleteMapping("{id}/flairs/{flairId}")
-    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer){
+    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer) {
         Flair flair = flairService.findOne(flairId).get();
         flair.setDeleted(true);
         flairService.save(flair);
@@ -127,11 +154,11 @@ public class CommunityController {
     }
 
     @GetMapping("{id}/rules")
-    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id){
+    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id) {
         Community community = communityService.findById(id);
         List<Rule> returnRules = new ArrayList<>();
-        for (Rule rule: community.getRules()){
-            if(!rule.isDeleted()){
+        for (Rule rule : community.getRules()) {
+            if (!rule.isDeleted()) {
                 returnRules.add(rule);
             }
         }
@@ -139,7 +166,7 @@ public class CommunityController {
     }
 
     @PostMapping("{id}/rules")
-    public ResponseEntity<RuleDTO> addRulesToCommunity(@PathVariable int id, @RequestBody RuleDTO ruleDTO, @RequestHeader("Authorization") String bearer){
+    public ResponseEntity<RuleDTO> addRulesToCommunity(@PathVariable int id, @RequestBody RuleDTO ruleDTO, @RequestHeader("Authorization") String bearer) {
         Community community = communityService.findById(id);
         Rule rule = new Rule(ruleDTO);
         rule.setCommunity(community);
@@ -149,7 +176,7 @@ public class CommunityController {
     }
 
     @DeleteMapping("{id}/rules/{ruleId}")
-    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer){
+    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer) {
         Community community = communityService.findById(id);
         Rule rule = ruleService.findOne(ruleId).get();
         rule.setDeleted(true);
@@ -172,12 +199,12 @@ public class CommunityController {
         List<Flair> flairs = new ArrayList<>();
         List<Rule> rules = new ArrayList<>();
         if (!communityDTO.getFlairs().isEmpty()) {
-            for(FlairDTO flairDTO: communityDTO.getFlairs()){
+            for (FlairDTO flairDTO : communityDTO.getFlairs()) {
                 flairs.add(new Flair(flairDTO));
             }
         }
         if (!communityDTO.getRules().isEmpty()) {
-            for(RuleDTO ruleDTO: communityDTO.getRules()){
+            for (RuleDTO ruleDTO : communityDTO.getRules()) {
                 Rule rule = new Rule(ruleDTO);
                 rule.setCommunity(community);
                 rule.setDescription(ruleDTO.getDescription());

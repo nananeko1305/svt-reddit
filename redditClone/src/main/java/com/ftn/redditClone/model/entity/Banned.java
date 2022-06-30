@@ -41,6 +41,13 @@ public class Banned {
     private Community community;
 
 
+    public Banned(BannedDTO bannedDTO) {
+        id = bannedDTO.getId();
+        timestamp = bannedDTO.getTimestamp();
+        moderator = null;
+        user = null;
+        community = null;
+    }
 }
 
 

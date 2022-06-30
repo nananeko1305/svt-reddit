@@ -15,14 +15,22 @@ import lombok.Setter;
 public class ModeratorDTO {
 
     private int id;
-    private int userID;
-    private int communityID;
+    private UserDTO user;
+    private CommunityDTO community;
     private boolean isDeleted;
 
     public ModeratorDTO(Moderator moderator){
         this.id = moderator.getId();
-        this.userID = moderator.getUser().getId();
-        this.communityID = moderator.getCommunity().getId();
+        if(moderator.getUser() == null){
+            this.user = null;
+        }else {
+            this.user = new UserDTO(moderator.getUser());
+        }
+        if(moderator.getCommunity() == null){
+            this.community = null;
+        }else{
+            this.community = new CommunityDTO(moderator.getCommunity());
+        }
         this.isDeleted = moderator.isDeleted();
     }
 

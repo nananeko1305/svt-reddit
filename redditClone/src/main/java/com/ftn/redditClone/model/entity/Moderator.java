@@ -40,5 +40,22 @@ public class Moderator{
     @Column(name = "isDeleted")
     private boolean isDeleted;
 
+    public Moderator(ModeratorDTO moderatorDTO){
+
+        UserService userService = new UserServiceImpl();
+        CommunityService communityService = new CommunityServiceImpl();
+        id = moderatorDTO.getId();
+        if(moderatorDTO.getUser() == null){
+            user = null;
+        }else{
+            user = new User(moderatorDTO.getUser());
+        }
+        if(moderatorDTO.getCommunity() == null){
+            community = null;
+        }else {
+            community = new Community(moderatorDTO.getCommunity());
+        }
+        isDeleted = moderatorDTO.isDeleted();
+    }
 
 }

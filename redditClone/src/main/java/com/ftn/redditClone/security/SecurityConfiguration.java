@@ -72,7 +72,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .authorizeRequests()
 //                .antMatchers("/h2-console/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/users/{id}").permitAll()
-                .antMatchers(HttpMethod.GET, "/users/").hasAnyRole("ADMIN", "USER")
+                .antMatchers(HttpMethod.GET, "/users/{id}/community/{communityId}").permitAll()
+                .antMatchers(HttpMethod.GET, "/users").hasAnyRole("ADMIN", "USER")
                 .antMatchers(HttpMethod.GET, "/users/{id}/karma").permitAll()
                 .antMatchers(HttpMethod.POST, "/users/").permitAll()
                 .antMatchers(HttpMethod.PUT, "/users/{id}").hasAnyRole("ADMIN", "USER")
@@ -81,6 +82,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.PUT, "/users/{id}/passwordChange/").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/{id}/reports/{reportType}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}/posts/sort/{sortType}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}/suspend").hasAnyRole("ADMIN")
                 .antMatchers(HttpMethod.GET, "/community/{id}/posts").permitAll()
@@ -110,8 +112,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.POST, "/comments/").hasAnyRole("ADMIN", "MODERATOR", "USER")
                 .antMatchers(HttpMethod.GET, "/comments/{id}/reactions/").permitAll()
                 .antMatchers(HttpMethod.POST, "/comments/{id}/reactions/").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/comments/{id}").permitAll()
                 .antMatchers(HttpMethod.GET, "/flairs/{id}").permitAll()
                 .antMatchers(HttpMethod.POST, "/reports").hasAnyRole("ADMIN", "MODERATOR", "USER")
+                .antMatchers(HttpMethod.GET, "/moderators").permitAll()
+                .antMatchers(HttpMethod.POST, "/moderators").permitAll()
+                .antMatchers(HttpMethod.POST, "/moderators/{id}").permitAll()
+                .antMatchers(HttpMethod.POST, "/banneds").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/banneds/{id}").permitAll()
                 .anyRequest().authenticated();
 
         //sort/{sortType}
