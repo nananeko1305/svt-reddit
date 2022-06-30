@@ -1,5 +1,6 @@
 package com.ftn.redditClone.controller;
 
+import com.ftn.redditClone.model.dto.ModeratorDTO;
 import com.ftn.redditClone.model.dto.PasswordChangeDTO;
 import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.dto.UserDTO;
@@ -7,6 +8,7 @@ import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.repository.UserRepository;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.DTOService;
+import com.ftn.redditClone.service.ModeratorService;
 import com.ftn.redditClone.service.UserService;
 
 import java.time.LocalDate;
@@ -50,6 +52,9 @@ public class UserController {
     private DTOService dtoService;
 
     @Autowired
+    private ModeratorService moderatorService;
+
+    @Autowired
     public UserController(UserService userService, AuthenticationManager authenticationManager,
                           UserDetailsService userDetailsService, TokenUtils tokenUtils) {
         this.userService = userService;
@@ -62,13 +67,18 @@ public class UserController {
     public ResponseEntity<List<UserDTO>> findAll() {
 
         List<User> users = userService.findAll();
-        List<UserDTO> returnUsers = new ArrayList<UserDTO>();
-        for (User user :
-                users) {
+        List<UserDTO> returnUsers = new ArrayList<>();
+        for (User user :users) {
             returnUsers.add(new UserDTO(user));
         }
 
         return new ResponseEntity<>(returnUsers, HttpStatus.OK);
+    }
+
+    @GetMapping("{id}/community/{communityId}")
+    public ResponseEntity<ModeratorDTO> returnModeratoor(@PathVariable int id, @PathVariable int communityId){
+        Moderator moderator = moderatorService.findByUserId(id,communityId);
+        return new ResponseEntity<>(new ModeratorDTO(moderator), HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/karma")
@@ -98,17 +108,19 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> findOne(@PathVariable int id,
-                                           @RequestHeader(value = "Authorization", required = false) String bearer) {
+    public ResponseEntity<UserDTO> findOne(@PathVariable int id, @RequestHeader(value = "Authorization", required = false) String bearer) {
 
-        if(bearer != null){
-            String token = bearer.substring(7);
-            String username = tokenUtils.getUsernameFromToken(token);
-            User user = userService.findByUsername(username);
-            return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
+        if(!bearer.equals("Bearer")){
+            if(!bearer.substring(7).equals("")){
+                String token = bearer.substring(7);
+                System.out.println(token);
+                String username = tokenUtils.getUsernameFromToken(token);
+                User user = userService.findByUsername(username);
+                return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
+            }
+
         }
-        User user = userService.findById(id);
-        return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
+        return new ResponseEntity<>(new UserDTO(), HttpStatus.OK);
     }
 
     @PostMapping(consumes = "application/json")

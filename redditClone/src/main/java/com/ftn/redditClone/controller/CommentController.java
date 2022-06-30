@@ -3,10 +3,7 @@ package com.ftn.redditClone.controller;
 import com.ftn.redditClone.model.dto.CommentDTO;
 import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.dto.ReactionDTO;
-import com.ftn.redditClone.model.entity.Comment;
-import com.ftn.redditClone.model.entity.Post;
-import com.ftn.redditClone.model.entity.Reaction;
-import com.ftn.redditClone.model.entity.User;
+import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +34,9 @@ public class CommentController {
 
     @Autowired
     private ReactionService reactionService;
+
+    @Autowired
+    private CommunityService communityService;
 
     @PostMapping(value = "{id}/reactions")
     public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id){
@@ -74,6 +74,7 @@ public class CommentController {
     @PostMapping()
     public ResponseEntity<CommentDTO> saveComment(@RequestBody CommentDTO commentDTO, @RequestHeader("Authorization") String bearer){
 
+
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
 
@@ -82,9 +83,23 @@ public class CommentController {
         comment.setUser(user);
         Post post = postService.findById(commentDTO.getPost().getId());
         comment.setPost(post);
+        Community community = communityService.findById(post.getCommunity().getId());
+        for (Banned banned : community.getBanneds()) {
+            if (banned.getUser().getId() == user.getId()) {
+                return new ResponseEntity<>(new CommentDTO(), HttpStatus.OK);
 
+            }
+        }
         commentService.save(comment);
 
+        return new ResponseEntity<>(new CommentDTO(comment), HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<CommentDTO> deleteComment(@PathVariable int id){
+        Comment comment = commentService.findById(id).get();
+        comment.setDeleted(true);
+        commentService.save(comment);
         return new ResponseEntity<>(new CommentDTO(comment), HttpStatus.OK);
     }
 }
