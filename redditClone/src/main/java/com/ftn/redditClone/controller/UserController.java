@@ -7,6 +7,7 @@ import com.ftn.redditClone.model.dto.UserDTO;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.repository.UserRepository;
 import com.ftn.redditClone.security.TokenUtils;
+import com.ftn.redditClone.service.CommunityService;
 import com.ftn.redditClone.service.DTOService;
 import com.ftn.redditClone.service.ModeratorService;
 import com.ftn.redditClone.service.UserService;
@@ -55,6 +56,9 @@ public class UserController {
     private ModeratorService moderatorService;
 
     @Autowired
+    private CommunityService communityService;
+
+    @Autowired
     public UserController(UserService userService, AuthenticationManager authenticationManager,
                           UserDetailsService userDetailsService, TokenUtils tokenUtils) {
         this.userService = userService;
@@ -78,7 +82,14 @@ public class UserController {
     @GetMapping("{id}/community/{communityId}")
     public ResponseEntity<ModeratorDTO> returnModeratoor(@PathVariable int id, @PathVariable int communityId){
         Moderator moderator = moderatorService.findByUserId(id,communityId);
-        return new ResponseEntity<>(new ModeratorDTO(moderator), HttpStatus.OK);
+        if(moderator == null){
+            Moderator newModerator = new Moderator(0,userService.findById(id),communityService.findById(communityId), false);
+            moderatorService.save(newModerator);
+            return new ResponseEntity<>(new ModeratorDTO(newModerator), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(new ModeratorDTO(moderator), HttpStatus.OK);
+        }
+
     }
 
     @GetMapping(value = "{id}/karma")
