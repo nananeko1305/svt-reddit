@@ -138,7 +138,7 @@ public class UserController {
     public ResponseEntity<UserDTO> saveUser(@RequestBody UserDTO userDTO) {
 
         User user = new User(userDTO);
-        user.setRegistrationDate(LocalDate.now());
+        user.setRegistrationDate(LocalDate.now().toString());
         user.setRole(Role.USER);
         userService.save(user);
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);

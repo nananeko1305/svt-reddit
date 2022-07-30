@@ -36,7 +36,7 @@ public class UserDTO {
 	@NotBlank
 	private String avatar;
 	@NotBlank
-	private LocalDate registrationDate;
+	private String registrationDate;
 	@NotBlank
 	private String description;
 	@NotBlank

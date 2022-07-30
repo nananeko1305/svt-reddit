@@ -31,7 +31,7 @@ public class Comment {
     private String text;
 
     @Column(name = "timestamp")
-    private LocalDate timestamp;
+    private String timestamp;
 
     @Column(name = "isDeleted")
     private boolean isDeleted;

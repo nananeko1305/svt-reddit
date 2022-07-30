@@ -33,7 +33,7 @@ public class Reaction {
     private ReactionType reactionType;
 
     @Column(name = "timestamp")
-    private LocalDate timestamp;
+    private String timestamp;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId", referencedColumnName = "id")

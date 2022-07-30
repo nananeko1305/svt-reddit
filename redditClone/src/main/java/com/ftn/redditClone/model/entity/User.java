@@ -47,7 +47,7 @@ public class User {
     private String avatar;
 
     @Column(name = "registrationDate", nullable = false)
-    private LocalDate registrationDate;
+    private String registrationDate;
 
     @Column(name = "description", nullable = false)
     private String description;

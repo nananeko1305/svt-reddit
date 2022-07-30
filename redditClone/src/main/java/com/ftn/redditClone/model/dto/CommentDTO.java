@@ -19,7 +19,7 @@ public class CommentDTO {
 
     private int id;
     private String text;
-    private LocalDate timestamp;
+    private String timestamp;
     private boolean isDeleted;
     private PostDTO post;
     private UserDTO user;
