@@ -15,7 +15,7 @@ public class ReportDTO {
 
     private int id;
     private ReportReason reportReason;
-    private LocalDate timestamp;
+    private String timestamp;
     private boolean accepted;
     private UserDTO user;
     private PostDTO post;

@@ -31,7 +31,7 @@ public class Report  {
     private ReportReason reportReason;
 
     @Column(name = "timestamp")
-    private LocalDate timestamp;
+    private String timestamp;
 
     @Column(name = "accepted")
     private boolean accepted;

@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class BannedDTO {
 
     private int id;
-    private LocalDate timestamp;
+    private String timestamp;
     private ModeratorDTO moderator;
     private UserDTO user;
     private CommunityDTO community;

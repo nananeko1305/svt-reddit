@@ -27,7 +27,7 @@ public class CommunityDTO {
     private Integer id;
     private String name;
     private String description;
-    private LocalDate creationDate;
+    private String creationDate;
     private boolean isSuspended;
     private String suspendedReason;
     private List<FlairDTO> flairs = new ArrayList<>();

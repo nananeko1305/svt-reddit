@@ -27,7 +27,7 @@ public class Banned {
     private int id;
 
     @Column(name = "timestamp")
-    private LocalDate timestamp;
+    private String timestamp;
 
     @OneToOne
     private Moderator moderator;

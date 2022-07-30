@@ -26,7 +26,7 @@ public class PostDTO {
     private int id;
     private String title;
     private String text;
-    private LocalDate creationDate;
+    private String creationDate;
     private String imagePath;
     private CommunityDTO community;
     private UserDTO user;

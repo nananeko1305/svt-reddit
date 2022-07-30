@@ -42,7 +42,7 @@ public class Post {
     private String text;
 
     @Column(name = "creationDate")
-    private LocalDate creationDate;
+    private String creationDate;
 
     @Column(name = "imagePath")
     private String imagePath;

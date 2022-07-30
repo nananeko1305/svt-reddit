@@ -37,7 +37,7 @@ public class Community {
     private String description;
 
     @Column(name = "creationDate", nullable = false)
-    private LocalDate creationDate;
+    private String creationDate;
 
     @Column(name = "isSuspended", nullable = false)
     public boolean isSuspended;

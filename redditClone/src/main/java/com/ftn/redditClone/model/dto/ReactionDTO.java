@@ -15,7 +15,7 @@ public class ReactionDTO {
 
     private int id;
     private ReactionType reactionType;
-    private LocalDate timestamp;
+    private String timestamp;
     public UserDTO user;
     public CommentDTO comment;
     public PostDTO post;
