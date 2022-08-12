@@ -72,7 +72,7 @@ public class UserController {
 
         List<User> users = userService.findAll();
         List<UserDTO> returnUsers = new ArrayList<>();
-        for (User user :users) {
+        for (User user : users) {
             returnUsers.add(new UserDTO(user));
         }
 
@@ -80,37 +80,37 @@ public class UserController {
     }
 
     @GetMapping("{id}/community/{communityId}")
-    public ResponseEntity<ModeratorDTO> returnModeratoor(@PathVariable int id, @PathVariable int communityId){
-        Moderator moderator = moderatorService.findByUserId(id,communityId);
-        if(moderator == null){
-            Moderator newModerator = new Moderator(0,userService.findById(id),communityService.findById(communityId), false);
+    public ResponseEntity<ModeratorDTO> returnModeratoor(@PathVariable int id, @PathVariable int communityId) {
+        Moderator moderator = moderatorService.findByUserId(id, communityId);
+        if (moderator == null) {
+            Moderator newModerator = new Moderator(0, userService.findById(id), communityService.findById(communityId), false);
             moderatorService.save(newModerator);
             return new ResponseEntity<>(new ModeratorDTO(newModerator), HttpStatus.OK);
-        }else{
+        } else {
             return new ResponseEntity<>(new ModeratorDTO(moderator), HttpStatus.OK);
         }
 
     }
 
     @GetMapping(value = "{id}/karma")
-    public ResponseEntity<Integer> returnKarma(@PathVariable int id){
+    public ResponseEntity<Integer> returnKarma(@PathVariable int id) {
 
         int karma = 0;
         User user = userService.findById(id);
-        for (Post post : user.getPosts()){
-            for (Reaction reaction: post.getReactions()){
-                if(reaction.getReactionType() == ReactionType.UPVOTE){
+        for (Post post : user.getPosts()) {
+            for (Reaction reaction : post.getReactions()) {
+                if (reaction.getReactionType() == ReactionType.UPVOTE) {
                     karma++;
-                }else {
+                } else {
                     karma--;
                 }
             }
         }
-        for (Comment comment : user.getComments()){
-            for (Reaction reaction: comment.getReactions()){
-                if(reaction.getReactionType() == ReactionType.UPVOTE){
+        for (Comment comment : user.getComments()) {
+            for (Reaction reaction : comment.getReactions()) {
+                if (reaction.getReactionType() == ReactionType.UPVOTE) {
                     karma++;
-                }else {
+                } else {
                     karma--;
                 }
             }
@@ -121,17 +121,9 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> findOne(@PathVariable int id, @RequestHeader(value = "Authorization", required = false) String bearer) {
 
-        if(!bearer.equals("Bearer")){
-            if(!bearer.substring(7).equals("")){
-                String token = bearer.substring(7);
-                System.out.println(token);
-                String username = tokenUtils.getUsernameFromToken(token);
-                User user = userService.findByUsername(username);
-                return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
-            }
-
-        }
-        return new ResponseEntity<>(new UserDTO(), HttpStatus.OK);
+        String username = tokenUtils.getUsernameFromToken(bearer);
+        User user = userService.findByUsername(username);
+        return new ResponseEntity<>(new UserDTO(user), HttpStatus.OK);
     }
 
     @PostMapping(consumes = "application/json")
@@ -148,8 +140,7 @@ public class UserController {
     @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<String> login(@RequestBody UserDTO userDto) {
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                userDto.getUsername(), userDto.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword());
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         try {
@@ -192,10 +183,9 @@ public class UserController {
 
     //	@PreAuthorize("hasAnyRole('USER','ADMIN')")
     @PutMapping(value = "{id}/passwordChange", consumes = "application/json")
-    public ResponseEntity<PasswordChangeDTO> updateUserPassword(@RequestBody PasswordChangeDTO passwordChangeDTO,
-                                                                @RequestHeader("Authorization") String bearer, @PathVariable int id) {
+    public ResponseEntity<PasswordChangeDTO> updateUserPassword(@RequestBody PasswordChangeDTO passwordChangeDTO, @PathVariable int id) {
         User user = userService.findById(id);
-        if(user.getId() == id){
+        if (user.getId() == id) {
             if (passwordChangeDTO.getOldPassword() == null || passwordChangeDTO.getNewPassword() == null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             } else {
@@ -203,7 +193,7 @@ public class UserController {
                 BCryptPasswordEncoder bcpe = new BCryptPasswordEncoder();
                 if (bcpe.matches(passwordChangeDTO.getOldPassword(), user.getPassword())) {
                     userService.changePassword(user.getUsername(), passwordChangeDTO.getNewPassword());
-                }else {
+                } else {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
                 return new ResponseEntity<>(new PasswordChangeDTO(passwordChangeDTO.getOldPassword(), passwordChangeDTO.getNewPassword(), passwordChangeDTO.getUser()), HttpStatus.OK);

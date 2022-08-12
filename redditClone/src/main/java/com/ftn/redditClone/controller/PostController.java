@@ -98,7 +98,7 @@ public class PostController {
                 returnPosts.add(post);
         }
         List<PostDTO> returnPostsDTO = dtoService.postToDTO(returnPosts);
-//        Collections.shuffle(returnPosts,new Random());
+        Collections.shuffle(returnPosts);
         return new ResponseEntity<>(returnPostsDTO, HttpStatus.OK);
     }
 
@@ -107,8 +107,7 @@ public class PostController {
 
         Post post = postService.findById(id);
         Community community = communityService.findById(post.getCommunity().getId());
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
+        String username = tokenUtils.getUsernameFromToken(bearer);
         Reaction reaction = new Reaction(reactionDTO);
         User user = userService.findByUsername(username);
         reaction.setUser(user);
@@ -129,14 +128,13 @@ public class PostController {
     @PostMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Authorization") String bearer){
 
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
+        String username = tokenUtils.getUsernameFromToken(bearer);
         Community community = communityService.findById(postDTO.getCommunity().getId());
         User user = userService.findByUsername(username);
         Post post = new Post(postDTO);
         post.setUser(user);
         post.setCommunity(community);
-        if(postDTO.getFlair().getId() != 0){
+        if(postDTO.getFlair() != null){
             post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
         }else {
             post.setFlair(null);

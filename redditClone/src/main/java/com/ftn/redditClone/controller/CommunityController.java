@@ -70,6 +70,18 @@ public class CommunityController {
         return new ResponseEntity<>(dtoService.postToDTO(returnPosts), HttpStatus.OK);
     }
 
+    @GetMapping("{id}/rules")
+    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id) {
+        Community community = communityService.findById(id);
+        List<Rule> returnRules = new ArrayList<>();
+        for (Rule rule : community.getRules()) {
+            if (!rule.isDeleted()) {
+                returnRules.add(rule);
+            }
+        }
+        return new ResponseEntity<>(dtoService.ruleToDTO(returnRules), HttpStatus.OK);
+    }
+
     @GetMapping("{id}/posts/sort/{sortType}")
     public ResponseEntity<List<PostDTO>> findAllPostsForCommunitySorted(@PathVariable int id, @PathVariable String sortType) {
         List<Post> posts = new ArrayList<>();
@@ -145,25 +157,6 @@ public class CommunityController {
         return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}/flairs/{flairId}")
-    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer) {
-        Flair flair = flairService.findOne(flairId).get();
-        flair.setDeleted(true);
-        flairService.save(flair);
-        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
-    }
-
-    @GetMapping("{id}/rules")
-    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id) {
-        Community community = communityService.findById(id);
-        List<Rule> returnRules = new ArrayList<>();
-        for (Rule rule : community.getRules()) {
-            if (!rule.isDeleted()) {
-                returnRules.add(rule);
-            }
-        }
-        return new ResponseEntity<>(dtoService.ruleToDTO(returnRules), HttpStatus.OK);
-    }
 
     @PostMapping("{id}/rules")
     public ResponseEntity<RuleDTO> addRulesToCommunity(@PathVariable int id, @RequestBody RuleDTO ruleDTO, @RequestHeader("Authorization") String bearer) {
@@ -175,23 +168,12 @@ public class CommunityController {
         return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}/rules/{ruleId}")
-    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer) {
-        Community community = communityService.findById(id);
-        Rule rule = ruleService.findOne(ruleId).get();
-        rule.setDeleted(true);
-        rule.setCommunity(community);
-        ruleService.save(rule);
-        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
-    }
-
 
     //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping(consumes = "application/json")
     public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Authorization") String bearer) {
 
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
+        String username = tokenUtils.getUsernameFromToken(bearer);
         communityDTO.setId(null);
         Community community = new Community(communityDTO);
         community = communityService.save(community);
@@ -268,6 +250,24 @@ public class CommunityController {
     @DeleteMapping(value = "delete", consumes = "application/json")
     public void deleteCommunity(@RequestBody CommunityDTO communityDTO) {
         communityService.deleteById(communityDTO.getId());
+    }
+
+    @DeleteMapping("{id}/rules/{ruleId}")
+    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer) {
+        Community community = communityService.findById(id);
+        Rule rule = ruleService.findOne(ruleId).get();
+        rule.setDeleted(true);
+        rule.setCommunity(community);
+        ruleService.save(rule);
+        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}/flairs/{flairId}")
+    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer) {
+        Flair flair = flairService.findOne(flairId).get();
+        flair.setDeleted(true);
+        flairService.save(flair);
+        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
     }
 
 }
