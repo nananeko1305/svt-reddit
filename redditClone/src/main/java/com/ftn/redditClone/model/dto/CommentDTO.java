@@ -24,6 +24,10 @@ public class CommentDTO {
     private PostDTO post;
     private UserDTO user;
 
+    private int parentComment;
+
+    private int childComment;
+
     public CommentDTO(Comment comment) {
         this.id = comment.getId();
         this.text = comment.getText();
@@ -31,5 +35,7 @@ public class CommentDTO {
         this.isDeleted = comment.isDeleted();
         this.post = new PostDTO(comment.getPost());
         this.user = new UserDTO(comment.getUser());
+        this.parentComment = comment.getParentComment();
+        this.childComment = comment.getChildComment();
     }
 }

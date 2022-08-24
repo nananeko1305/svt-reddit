@@ -48,6 +48,21 @@ public class CommunityController {
     public ResponseEntity<CommunityDTO> findOne(@PathVariable int id) {
         Community community = communityService.findById(id);
         if (community.isSuspended == true) {
+
+
+            for(int i = 0; i < community.getFlairs().size(); i++){
+                if (community.getFlairs().get(i).isDeleted()){
+                    community.getFlairs().remove(i);
+                }
+            }
+
+            for(int i = 0; i < community.getRules().size(); i++){
+                if (community.getRules().get(i).isDeleted()){
+                    community.getRules().remove(i);
+                }
+            }
+
+
             return new ResponseEntity<>(new CommunityDTO(), HttpStatus.NOT_FOUND);
         } else {
             CommunityDTO communityDTO = new CommunityDTO(community);
@@ -145,6 +160,16 @@ public class CommunityController {
         return new ResponseEntity<>(dtoService.reportToDTO(reports), HttpStatus.OK);
     }
 
+    @GetMapping("{id}/moderators")
+    public ResponseEntity<List<ModeratorDTO>> returnModeratorsForCommunity(@PathVariable int id){
+
+        Community community = communityService.findById(id);
+
+        List<ModeratorDTO> moderatorDTOS = dtoService.moderatorToDTO(community.getModerators());
+
+        return new ResponseEntity<>(moderatorDTOS, HttpStatus.OK);
+    }
+
     @PostMapping("{id}/flairs")
     public ResponseEntity<FlairDTO> addFlairToCommunity(@PathVariable int id, @RequestBody FlairDTO flairDTO, @RequestHeader("Authorization") String bearer) {
         Community community = communityService.findById(id);
@@ -207,8 +232,7 @@ public class CommunityController {
     @PostMapping("{id}/suspend")
     public ResponseEntity<CommunityDTO> suspendCommunity(@RequestHeader("Authorization") String bearer, @RequestBody CommunityDTO communityDTO) {
 
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
+        String username = tokenUtils.getUsernameFromToken(bearer);
         Community community = communityService.findById(communityDTO.getId());
         community.isSuspended = true;
         community.suspendedReason = communityDTO.getSuspendedReason();

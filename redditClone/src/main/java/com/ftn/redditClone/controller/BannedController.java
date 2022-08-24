@@ -5,14 +5,13 @@ import com.ftn.redditClone.model.entity.Banned;
 import com.ftn.redditClone.model.entity.Community;
 import com.ftn.redditClone.model.entity.Moderator;
 import com.ftn.redditClone.model.entity.User;
-import com.ftn.redditClone.service.BannedService;
-import com.ftn.redditClone.service.CommunityService;
-import com.ftn.redditClone.service.ModeratorService;
-import com.ftn.redditClone.service.UserService;
+import com.ftn.redditClone.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("banneds")
@@ -30,8 +29,18 @@ public class BannedController {
     @Autowired
     private ModeratorService moderatorService;
 
+    @Autowired
+    private DTOService dtoService;
+
+    @GetMapping()
+    public ResponseEntity<List<BannedDTO>> findAll() {
+
+        return new ResponseEntity<>(dtoService.bannedToDTO(bannedService.findAll()), HttpStatus.OK);
+
+    }
+
     @PostMapping()
-    public ResponseEntity<BannedDTO> saveBan(@RequestBody BannedDTO bannedDTO){
+    public ResponseEntity<BannedDTO> saveBan(@RequestBody BannedDTO bannedDTO) {
         Banned banned = new Banned(bannedDTO);
         User user = userService.findById(bannedDTO.getUser().getId());
         banned.setUser(user);
@@ -44,7 +53,7 @@ public class BannedController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<BannedDTO> deleteBan(@PathVariable int id){
+    public ResponseEntity<BannedDTO> deleteBan(@PathVariable int id) {
         bannedService.delete(id);
         return new ResponseEntity<>(new BannedDTO(), HttpStatus.OK);
     }

@@ -5,6 +5,7 @@ import com.ftn.redditClone.model.entity.Comment;
 import com.ftn.redditClone.model.entity.Post;
 import com.ftn.redditClone.model.entity.Report;
 import com.ftn.redditClone.model.entity.User;
+import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.CommentService;
 import com.ftn.redditClone.service.PostService;
 import com.ftn.redditClone.service.ReportService;
@@ -30,14 +31,17 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
+    @Autowired
+    private TokenUtils tokenUtils;
+
     @PostMapping()
     public ResponseEntity<ReportDTO> saveReport(@RequestBody ReportDTO reportDTO, @RequestHeader("Authorization") String bearer){
         Report report = new Report(reportDTO);
         Post post = new Post();
         Comment comment = new Comment();
-        User user = userService.findById(reportDTO.getUser().getId());
+        User user = userService.findByUsername(tokenUtils.getUsernameFromToken(bearer));
         report.setUser(user);
-        if(reportDTO.getPost().getId() != 0){
+        if(reportDTO.getPost() != null ){
             report.setComment(null);
             post = postService.findById(reportDTO.getPost().getId());
             report.setPost(post);

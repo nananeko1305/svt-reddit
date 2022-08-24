@@ -41,8 +41,7 @@ public class ReactionController {
     @PostMapping()
     private ResponseEntity<ReactionDTO> saveReaction(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO) {
 
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
+        String username = tokenUtils.getUsernameFromToken(bearer);
         //podaci za save
         Reaction reaction = new Reaction(reactionDTO);
         reaction.setUser(userService.findByUsername(username));

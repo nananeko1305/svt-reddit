@@ -19,6 +19,10 @@ public class ModeratorDTO {
     private CommunityDTO community;
     private boolean isDeleted;
 
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
     public ModeratorDTO(Moderator moderator){
         this.id = moderator.getId();
         if(moderator.getUser() == null){
@@ -31,7 +35,12 @@ public class ModeratorDTO {
         }else{
             this.community = new CommunityDTO(moderator.getCommunity());
         }
-        this.isDeleted = moderator.isDeleted();
+        if(moderator.isDeleted()){
+            this.isDeleted = true;
+        }else {
+            this.isDeleted = false;
+        }
+
     }
 
 }

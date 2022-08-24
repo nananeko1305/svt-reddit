@@ -44,6 +44,12 @@ public class Comment {
     @JoinColumn(name = "userId", referencedColumnName = "id")
     private User user;
 
+    @Column(name = "parentComment")
+    private int parentComment;
+
+    @Column(name = "childComment")
+    private int childComment;
+
     @OneToMany(mappedBy = "comment")
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<Reaction> reactions = new ArrayList<>();
@@ -60,5 +66,8 @@ public class Comment {
         isDeleted = commentDTO.isDeleted();
         post = null;
         user = null;
+        parentComment = commentDTO.getParentComment();
+        childComment = commentDTO.getChildComment();
+
     }
 }

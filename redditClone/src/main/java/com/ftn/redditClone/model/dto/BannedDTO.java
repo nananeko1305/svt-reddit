@@ -23,17 +23,17 @@ public class BannedDTO {
     public BannedDTO(Banned banned){
         this.id = banned.getId();
         this.timestamp = banned.getTimestamp();
-        if(moderator == null){
+        if(banned.getModerator() == null){
             moderator = null;
         }else{
             this.moderator = new ModeratorDTO(banned.getModerator());
         }
-        if(user == null){
+        if(banned.getUser() == null){
             user = null;
         }else{
             this.user = new UserDTO(banned.getUser());
         }
-        if(community == null){
+        if(banned.getCommunity() == null){
             community = null;
         }else{
             this.community = new CommunityDTO(banned.getCommunity());

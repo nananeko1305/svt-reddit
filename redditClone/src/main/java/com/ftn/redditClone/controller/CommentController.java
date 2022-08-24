@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -40,8 +41,8 @@ public class CommentController {
 
     @PostMapping(value = "{id}/reactions")
     public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id){
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
+
+        String username = tokenUtils.getUsernameFromToken(bearer);
         Reaction reaction = new Reaction(reactionDTO);
         User user = userService.findByUsername(username);
         reaction.setUser(user);
@@ -50,8 +51,10 @@ public class CommentController {
         reaction.setPost(null);
         if(reactionService.alreadyVotedComment(user.getId(), comment.getId()).isEmpty()){
             reactionService.saveReaction(reaction);
+            return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.ACCEPTED);
         }
-        return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
     }
 
     @GetMapping()
@@ -74,10 +77,7 @@ public class CommentController {
     @PostMapping()
     public ResponseEntity<CommentDTO> saveComment(@RequestBody CommentDTO commentDTO, @RequestHeader("Authorization") String bearer){
 
-
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
-
+        String username = tokenUtils.getUsernameFromToken(bearer);
         Comment comment = new Comment(commentDTO);
         User user = userService.findByUsername(username);
         comment.setUser(user);

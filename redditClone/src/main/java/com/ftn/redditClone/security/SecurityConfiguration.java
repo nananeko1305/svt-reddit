@@ -73,7 +73,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 //                .antMatchers("/h2-console/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/users/{id}").permitAll()
                 .antMatchers(HttpMethod.GET, "/users/{id}/community/{communityId}").permitAll()
-                .antMatchers(HttpMethod.GET, "/users").hasAnyRole("ADMIN", "USER")
+                .antMatchers(HttpMethod.GET, "/users").permitAll()
                 .antMatchers(HttpMethod.GET, "/users/{id}/karma").permitAll()
                 .antMatchers(HttpMethod.POST, "/users/").permitAll()
                 .antMatchers(HttpMethod.PUT, "/users/{id}").permitAll()
@@ -89,6 +89,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.GET, "/community/{id}/flairs").permitAll()
                 .antMatchers(HttpMethod.POST, "/community/{id}/flairs").hasAnyRole("ADMIN", "USER")
                 .antMatchers(HttpMethod.GET, "/community/{id}/rules").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/{id}/moderators").permitAll()
                 .antMatchers(HttpMethod.POST, "/community/{id}/rules").hasAnyRole("ADMIN", "USER")
                 .antMatchers(HttpMethod.DELETE, "/community/{id}/rules/{ruleId}").hasAnyRole("ADMIN", "USER")
                 .antMatchers(HttpMethod.POST, "/community/").hasAnyRole("ADMIN",  "USER")
@@ -119,6 +120,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.POST, "/moderators").permitAll()
                 .antMatchers(HttpMethod.POST, "/moderators/{id}").permitAll()
                 .antMatchers(HttpMethod.POST, "/banneds").permitAll()
+                .antMatchers(HttpMethod.GET, "/banneds").permitAll()
                 .antMatchers(HttpMethod.DELETE, "/banneds/{id}").permitAll()
                 .anyRequest().authenticated();
 
