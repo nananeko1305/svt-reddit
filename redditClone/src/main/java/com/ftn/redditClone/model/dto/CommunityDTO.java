@@ -55,7 +55,11 @@ public class CommunityDTO {
         }else {
             this.rules = dtoService.ruleToDTO(community.getRules());
         }
-        this.moderators = null;
+        if(community.getModerators().isEmpty()){
+            this.moderators = null;
+        }else {
+            this.moderators = dtoService.moderatorToDTO(community.getModerators());
+        }
     }
 
 }

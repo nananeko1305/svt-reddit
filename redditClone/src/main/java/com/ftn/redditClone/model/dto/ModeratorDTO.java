@@ -32,8 +32,6 @@ public class ModeratorDTO {
         }
         if(moderator.getCommunity() == null){
             this.community = null;
-        }else{
-            this.community = new CommunityDTO(moderator.getCommunity());
         }
         if(moderator.isDeleted()){
             this.isDeleted = true;

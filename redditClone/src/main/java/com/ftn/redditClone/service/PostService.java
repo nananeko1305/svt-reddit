@@ -16,6 +16,10 @@ public interface PostService {
 
     public Post findById(int id);
 
+    List<Post> sortedVote();
+
+    List<Post> sortedDownvote();
+
     List<Post> sortedList(String sortType);
 
     List<Post> sortedPostsForCommunity(int communityId, String sortedType);

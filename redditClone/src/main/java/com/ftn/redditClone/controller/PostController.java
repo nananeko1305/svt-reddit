@@ -41,7 +41,7 @@ public class PostController {
     private CommentService commentService;
 
     @GetMapping(value = "{id}")
-    public ResponseEntity<PostDTO> getOne(@PathVariable int id){
+    public ResponseEntity<PostDTO> getOne(@PathVariable int id) {
 
         Post post = postService.findById(id);
         return new ResponseEntity<>(new PostDTO(post), HttpStatus.OK);
@@ -53,10 +53,10 @@ public class PostController {
     }
 
     @GetMapping("{id}/comments")
-    private ResponseEntity<List<CommentDTO>> commentsForPost(@PathVariable int id){
+    private ResponseEntity<List<CommentDTO>> commentsForPost(@PathVariable int id) {
         List<Comment> comments = postService.findById(id).getComments();
         List<Comment> returnComments = new ArrayList<>();
-        for (Comment comment: comments){
+        for (Comment comment : comments) {
             if (!comment.isDeleted())
                 returnComments.add(comment);
         }
@@ -64,37 +64,71 @@ public class PostController {
     }
 
     @GetMapping("sort/{sortType}")
-    private ResponseEntity<List<PostDTO>> sortedPosts(@PathVariable String sortType){
+    private ResponseEntity<List<PostDTO>> sortedPosts(@PathVariable String sortType) {
         List<Post> posts = new ArrayList<>();
-        if(sortType.equals("Top")){
-            posts = postService.sortedList("Top");
-        }else if(sortType.equals("Hot")){
-            posts = postService.sortedList("Hot");
+        if (sortType.equals("Top")) {
+            for (Post post : postService.sortedList("Top")) {
+                if (!post.isDeleted()) {
+                    posts.add(post);
+                }
+            }
+        } else if (sortType.equals("Hot")) {
+            for (Post post : postService.sortedList("Hot")) {
+                if (!post.isDeleted()) {
+                    posts.add(post);
+                }
+            }
+        } else if (sortType.equals("downvote")) {
+            for (Post post : postService.sortedDownvote()) {
+                if (!post.isDeleted()) {
+                    posts.add(post);
+                }
+            }
+        } else {
+            for (Post post : postService.sortedVote()) {
+                if (!post.isDeleted()) {
+                    posts.add(post);
+                }
+            }
         }
         return new ResponseEntity<>(dtoService.postToDTO(posts), HttpStatus.OK);
     }
 
     @GetMapping("{id}/comments/sort/{sortType}")
-    private ResponseEntity<List<CommentDTO>> sortedCommentForPost(@PathVariable int id, @PathVariable String sortType){
+    private ResponseEntity<List<CommentDTO>> sortedCommentForPost(@PathVariable int id,
+                                                                  @PathVariable String sortType) {
         List<Comment> comments = new ArrayList<>();
-        if(sortType.equals("Top")){
-            comments = commentService.soredList("Top", id);
-        }else if(sortType.equals("New")){
-            comments = commentService.soredList("New", id);
-        }else if(sortType.equals("Old")){
-            comments = commentService.soredList("Old", id);
+        if (sortType.equals("Top")) {
+            for (Comment comment : commentService.soredList("Top", id)) {
+                if (!comment.isDeleted()) {
+                    comments.add(comment);
+                }
+            }
+        } else if (sortType.equals("New")) {
+            for (Comment comment : commentService.soredList("New", id)) {
+                if (!comment.isDeleted()) {
+                    comments.add(comment);
+                }
+            }
+        } else if (sortType.equals("Old")) {
+            for (Comment comment : commentService.soredList("Old", id)) {
+                if (!comment.isDeleted()) {
+                    comments.add(comment);
+                }
+
+            }
         }
         return new ResponseEntity<>(dtoService.commentToDTO(comments), HttpStatus.OK);
     }
 
     @GetMapping()
-    public ResponseEntity<List<PostDTO>> findAll(){
+    public ResponseEntity<List<PostDTO>> findAll() {
 
         List<Post> posts = postService.findAll();
         List<Post> returnPosts = new ArrayList<>();
 
         for (Post post : posts) {
-            if(!post.isDeleted())
+            if (!post.isDeleted())
                 returnPosts.add(post);
         }
         List<PostDTO> returnPostsDTO = dtoService.postToDTO(returnPosts);
@@ -102,8 +136,10 @@ public class PostController {
         return new ResponseEntity<>(returnPostsDTO, HttpStatus.OK);
     }
 
+
     @PostMapping(value = "{id}/reactions")
-    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id) {
+    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String
+                                                              bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id) {
 
         Post post = postService.findById(id);
         Community community = communityService.findById(post.getCommunity().getId());
@@ -115,18 +151,21 @@ public class PostController {
         reaction.setPost(post);
         for (Banned banned : community.getBanneds()) {
             if (banned.getUser().getId() == user.getId()) {
-                return new ResponseEntity<>(new ReactionDTO(), HttpStatus.OK);
+                return new ResponseEntity<>(new ReactionDTO(), HttpStatus.NOT_ACCEPTABLE);
 
             }
         }
         if (reactionService.alreadyVoted(user.getId(), post.getId()).isEmpty()) {
             reactionService.saveReaction(reaction);
+        } else {
+            return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
     }
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Authorization") String bearer){
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO
+                                                      postDTO, @RequestHeader("Authorization") String bearer) {
 
         String username = tokenUtils.getUsernameFromToken(bearer);
         Community community = communityService.findById(postDTO.getCommunity().getId());
@@ -134,19 +173,19 @@ public class PostController {
         Post post = new Post(postDTO);
         post.setUser(user);
         post.setCommunity(community);
-        if(postDTO.getFlair() != null){
+        if (postDTO.getFlair() != null) {
             post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
-        }else {
+        } else {
             post.setFlair(null);
         }
         for (Banned banned : community.getBanneds()) {
             if (banned.getUser().getId() == user.getId()) {
-                return new ResponseEntity<>(new PostDTO(), HttpStatus.OK);
+                return new ResponseEntity<>(new PostDTO(), HttpStatus.NOT_ACCEPTABLE);
 
             }
         }
         Post returnPost = postService.save(post);
-        return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);
+        return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.OK);
     }
 
     @PutMapping(consumes = "application/json")
@@ -172,7 +211,7 @@ public class PostController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<PostDTO> deletePost(@PathVariable int id){
+    public ResponseEntity<PostDTO> deletePost(@PathVariable int id) {
 
         Post post = postService.findById(id);
         post.setDeleted(true);

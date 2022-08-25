@@ -35,13 +35,12 @@ public class DTOServiceImpl implements DTOService {
 
     @Override
     public List<CommunityDTO> communityToDTO(List<Community> communities) {
-        List<CommunityDTO> communityDTO = new ArrayList<>();
+        List<CommunityDTO> communityDTOs = new ArrayList<>();
         for (Community community: communities){
-            CommunityDTO community1DTO = new CommunityDTO(community);
-            community1DTO.setModerators(moderatorToDTO(community.getModerators()));
-            communityDTO.add(community1DTO);
+            CommunityDTO communityDTO = new CommunityDTO(community);
+            communityDTOs.add(communityDTO);
         }
-        return communityDTO;
+        return communityDTOs;
     }
 
     @Override
@@ -56,12 +55,12 @@ public class DTOServiceImpl implements DTOService {
 
     @Override
     public List<ModeratorDTO> moderatorToDTO(List<Moderator> moderators) {
-        List<ModeratorDTO> moderatorDTO = new ArrayList<>();
+        List<ModeratorDTO> moderatorDTOs = new ArrayList<>();
         for (Moderator moderator: moderators){
-            ModeratorDTO moderatorDTO1 = new ModeratorDTO(moderator);
-            moderatorDTO.add(moderatorDTO1);
+            ModeratorDTO moderatorDTO = new ModeratorDTO(moderator);
+            moderatorDTOs.add(moderatorDTO);
         }
-        return moderatorDTO;
+        return moderatorDTOs;
     }
 
     @Override

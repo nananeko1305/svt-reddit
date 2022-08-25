@@ -86,7 +86,7 @@ public class CommentController {
         Community community = communityService.findById(post.getCommunity().getId());
         for (Banned banned : community.getBanneds()) {
             if (banned.getUser().getId() == user.getId()) {
-                return new ResponseEntity<>(new CommentDTO(), HttpStatus.OK);
+                return new ResponseEntity<>(new CommentDTO(), HttpStatus.NOT_ACCEPTABLE);
 
             }
         }

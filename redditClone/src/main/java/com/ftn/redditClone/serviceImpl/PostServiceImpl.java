@@ -36,6 +36,16 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<Post> sortedVote() {
+        return postRepository.sortedUpvote();
+    }
+
+    @Override
+    public List<Post> sortedDownvote() {
+        return postRepository.sortedDownvote();
+    }
+
+    @Override
     public List<Post> sortedList(String sortType) {
         if (sortType.equals("Top")) {
             return postRepository.sortedTop();
