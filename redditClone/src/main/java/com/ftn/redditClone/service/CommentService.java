@@ -15,4 +15,6 @@ public interface CommentService {
 
     List<Comment> soredList(String sortType, int id);
 
+    List<Comment> replies(int id);
+
 }

@@ -19,6 +19,9 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     @Query(value = "select * from comments where post_id = ?1 order by timestamp DESC", nativeQuery = true)
     List<Comment> sortNew(int id);
 
+    @Query(value = "select * from comments where parent_comment = ?1", nativeQuery = true)
+    List<Comment> replies(int id);
+
 
 
 }

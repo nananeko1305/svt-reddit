@@ -57,7 +57,7 @@ public class PostController {
         List<Comment> comments = postService.findById(id).getComments();
         List<Comment> returnComments = new ArrayList<>();
         for (Comment comment : comments) {
-            if (!comment.isDeleted())
+            if (!comment.isDeleted() && comment.getParentComment() == 0)
                 returnComments.add(comment);
         }
         return new ResponseEntity<>(dtoService.commentToDTO(returnComments), HttpStatus.OK);
@@ -100,19 +100,19 @@ public class PostController {
         List<Comment> comments = new ArrayList<>();
         if (sortType.equals("Top")) {
             for (Comment comment : commentService.soredList("Top", id)) {
-                if (!comment.isDeleted()) {
+                if (!comment.isDeleted() && comment.getParentComment() == 0) {
                     comments.add(comment);
                 }
             }
         } else if (sortType.equals("New")) {
             for (Comment comment : commentService.soredList("New", id)) {
-                if (!comment.isDeleted()) {
+                if (!comment.isDeleted() && comment.getParentComment() == 0) {
                     comments.add(comment);
                 }
             }
         } else if (sortType.equals("Old")) {
             for (Comment comment : commentService.soredList("Old", id)) {
-                if (!comment.isDeleted()) {
+                if (!comment.isDeleted() && comment.getParentComment() == 0) {
                     comments.add(comment);
                 }
 

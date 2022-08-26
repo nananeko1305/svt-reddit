@@ -52,4 +52,9 @@ public class CommentServiceImpl implements CommentService {
             return commentRepository.sortOld(id);
         }
     }
+
+    @Override
+    public List<Comment> replies(int id) {
+        return commentRepository.replies(id);
+    }
 }
