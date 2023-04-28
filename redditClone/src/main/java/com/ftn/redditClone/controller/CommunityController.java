@@ -1,16 +1,21 @@
 package com.ftn.redditClone.controller;
 
-import antlr.Token;
+import com.ftn.redditClone.elastic.dto.CommunityElasticAddDTO;
+import com.ftn.redditClone.elastic.dto.CommunityElasticDTO;
+import com.ftn.redditClone.elastic.model.CommunityElastic;
+import com.ftn.redditClone.elastic.service.CommunityElasticService;
 import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
+import com.ftn.redditClone.elastic.util.SearchType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
+import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -18,7 +23,7 @@ import java.util.*;
 public class CommunityController {
 
     @Autowired
-    private CommunityService communityService;
+    private com.ftn.redditClone.service.CommunityService communityService;
 
     @Autowired
     private PostService postService;
@@ -43,6 +48,9 @@ public class CommunityController {
 
     @Autowired
     private ReportService reportService;
+
+    @Autowired
+    private CommunityElasticService communityElasticService;
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<CommunityDTO> findOne(@PathVariable int id) {
@@ -187,8 +195,10 @@ public class CommunityController {
 
 
     //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @PostMapping(consumes = "application/json")
-    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Authorization") String bearer) {
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Authorization") String bearer, @ModelAttribute("file") MultipartFile file) {
+
+        //mora da se odvoji posebno json a posebno fajl!
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
@@ -215,6 +225,21 @@ public class CommunityController {
         community.setFlairs(flairs);
         communityService.save(community);
         moderatorService.save(moderator);
+
+
+
+        CommunityElasticAddDTO communityElasticAddDTO = new CommunityElasticAddDTO();
+        communityElasticAddDTO.setId(community.getId());
+        communityElasticAddDTO.setName(community.getName());
+        communityElasticAddDTO.setDescription(community.getDescription());
+        communityElasticAddDTO.setFile(file);
+
+        try {
+            communityElasticService.indexUploadedFile(communityElasticAddDTO);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         CommunityDTO communityDTO1 = new CommunityDTO(community);
         communityDTO1.setFlairs(dtoService.flairToDTO(flairs));
         List<RuleDTO> ruleDTOS = dtoService.ruleToDTO(rules);
@@ -270,4 +295,85 @@ public class CommunityController {
         communityService.deleteById(communityDTO.getId());
     }
 
+
+
+
+    //searching
+
+
+    //by name
+    @GetMapping("findByName/{name}/{type}")
+    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesByNameAndType(@PathVariable String name, @PathVariable String type) {
+
+        SearchType type1 = SearchType.valueOf(type);
+
+        return new ResponseEntity<>(communityElasticService.findAllByNameAndType(name, type1), HttpStatus.OK);
+    }
+
+    //by desc
+    @GetMapping("findByDesc/{desc}/{type}")
+    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesByDescAndType(@PathVariable String desc, @PathVariable String type) {
+
+        SearchType type1 = SearchType.valueOf(type);
+
+        return new ResponseEntity<>(communityElasticService.findAllByDescAndType(desc, type1), HttpStatus.OK);
+    }
+
+    @GetMapping("findByRangeOfPosts/{from}/{to}")
+    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToPost(@PathVariable int from, @PathVariable int to){
+
+        return new ResponseEntity<>(communityElasticService.findCommunitiesFromToPost(from, to), HttpStatus.OK);
+    }
+
+    @GetMapping("findByRangeOfAverageKarma/{from}/{to}")
+    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@PathVariable double from, @PathVariable double to){
+
+        return new ResponseEntity<>(communityElasticService.findCommunitiesFromToAverageKarma(from, to), HttpStatus.OK);
+    }
+
+    @GetMapping("findCommunitiesByMultipleValues/{name}/{desc}")
+    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@PathVariable String name, @PathVariable String desc){
+
+        System.out.println(communityElasticService.findAllByNameAndDesc(name, desc));
+
+        if (communityElasticService.findAllByNameAndDesc(name, desc) == null) {
+            return new ResponseEntity<>(null, HttpStatus.valueOf(202));
+        } else  {
+            return new ResponseEntity<>(communityElasticService.findAllByNameAndDesc(name, desc), HttpStatus.OK);
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+

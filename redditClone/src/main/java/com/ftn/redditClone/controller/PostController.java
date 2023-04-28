@@ -1,5 +1,7 @@
 package com.ftn.redditClone.controller;
 
+import com.ftn.redditClone.elastic.model.PostElastic;
+import com.ftn.redditClone.elastic.service.PostElasticService;
 import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
@@ -39,6 +41,9 @@ public class PostController {
     private FlairService flairService;
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    public PostElasticService postElasticService;
 
     @GetMapping(value = "{id}")
     public ResponseEntity<PostDTO> getOne(@PathVariable int id){
@@ -148,6 +153,8 @@ public class PostController {
             }
         }
         Post returnPost = postService.save(post);
+        postElasticService.savePost(returnPost);
+
         return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);
     }
 

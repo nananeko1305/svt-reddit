@@ -80,7 +80,26 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.DELETE, "/users/").hasAnyRole("ADMIN", "USER")
                 .antMatchers(HttpMethod.POST, "/users/login").permitAll()
                 .antMatchers(HttpMethod.PUT, "/users/{id}/passwordChange/").permitAll()
+
                 .antMatchers(HttpMethod.GET, "/community/").permitAll()
+
+                //search
+                .antMatchers(HttpMethod.GET, "/community/findByName/{name}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findByDesc/{desc}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findByRule/{rule}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findByName/{name}/{type}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findByDesc/{desc}/{type}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findByRangeOfPosts/{from}/{to}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findByRangeOfAverageKarma/{from}/{to}").permitAll()
+                .antMatchers(HttpMethod.GET, "/community/findCommunitiesByMultipleValues/{name}/{desc}").permitAll()
+
+
+
+
+
+
+
+
                 .antMatchers(HttpMethod.GET, "/community/{id}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}/reports/{reportType}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/{id}/posts/sort/{sortType}").permitAll()
