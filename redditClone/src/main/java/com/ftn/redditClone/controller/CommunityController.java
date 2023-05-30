@@ -52,6 +52,20 @@ public class CommunityController {
     @Autowired
     private CommunityElasticService communityElasticService;
 
+    @GetMapping()
+    public ResponseEntity<List<CommunityDTO>> findAll() {
+
+        List<Community> communities = communityService.findAll();
+        List<Community> returnCommunities = new ArrayList<>();
+
+        for (Community community : communities) {
+            if (community.isSuspended == false)
+                returnCommunities.add(community);
+        }
+        List<CommunityDTO> communityDTOs = dtoService.communityToDTO(returnCommunities);
+        return new ResponseEntity<>(communityDTOs, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/{id}")
     public ResponseEntity<CommunityDTO> findOne(@PathVariable int id) {
         Community community = communityService.findById(id);
@@ -89,18 +103,16 @@ public class CommunityController {
         return new ResponseEntity<>(dtoService.postToDTO(posts), HttpStatus.OK);
     }
 
-    @GetMapping()
-    public ResponseEntity<List<CommunityDTO>> findAll() {
-
-        List<Community> communities = communityService.findAll();
-        List<Community> returnCommunities = new ArrayList<>();
-
-        for (Community community : communities) {
-            if (community.isSuspended == false)
-                returnCommunities.add(community);
+    @GetMapping("{id}/rules")
+    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id) {
+        Community community = communityService.findById(id);
+        List<Rule> returnRules = new ArrayList<>();
+        for (Rule rule : community.getRules()) {
+            if (!rule.isDeleted()) {
+                returnRules.add(rule);
+            }
         }
-        List<CommunityDTO> communityDTOs = dtoService.communityToDTO(returnCommunities);
-        return new ResponseEntity<>(communityDTOs, HttpStatus.OK);
+        return new ResponseEntity<>(dtoService.ruleToDTO(returnRules), HttpStatus.OK);
     }
 
     @GetMapping("{id}/flairs")
@@ -141,62 +153,8 @@ public class CommunityController {
         return new ResponseEntity<>(dtoService.reportToDTO(reports), HttpStatus.OK);
     }
 
-    @PostMapping("{id}/flairs")
-    public ResponseEntity<FlairDTO> addFlairToCommunity(@PathVariable int id, @RequestBody FlairDTO flairDTO, @RequestHeader("Authorization") String bearer) {
-        Community community = communityService.findById(id);
-        Set<Community> communities = new HashSet<>();
-        communities.add(community);
-        Flair flair = new Flair(flairDTO);
-        flair.setCommunities(communities);
-        community.getFlairs().add(flair);
-        communityService.save(community);
-        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
-    }
-
-    @DeleteMapping("{id}/flairs/{flairId}")
-    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer) {
-        Flair flair = flairService.findOne(flairId).get();
-        flair.setDeleted(true);
-        flairService.save(flair);
-        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
-    }
-
-    @GetMapping("{id}/rules")
-    public ResponseEntity<List<RuleDTO>> returnRulesForCommunity(@PathVariable int id) {
-        Community community = communityService.findById(id);
-        List<Rule> returnRules = new ArrayList<>();
-        for (Rule rule : community.getRules()) {
-            if (!rule.isDeleted()) {
-                returnRules.add(rule);
-            }
-        }
-        return new ResponseEntity<>(dtoService.ruleToDTO(returnRules), HttpStatus.OK);
-    }
-
-    @PostMapping("{id}/rules")
-    public ResponseEntity<RuleDTO> addRulesToCommunity(@PathVariable int id, @RequestBody RuleDTO ruleDTO, @RequestHeader("Authorization") String bearer) {
-        Community community = communityService.findById(id);
-        Rule rule = new Rule(ruleDTO);
-        rule.setCommunity(community);
-        community.getRules().add(rule);
-        communityService.save(community);
-        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
-    }
-
-    @DeleteMapping("{id}/rules/{ruleId}")
-    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer) {
-        Community community = communityService.findById(id);
-        Rule rule = ruleService.findOne(ruleId).get();
-        rule.setDeleted(true);
-        rule.setCommunity(community);
-        ruleService.save(rule);
-        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
-    }
-
-
-    //	@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Authorization") String bearer, @ModelAttribute("file") MultipartFile file) {
+    @PostMapping(consumes = "application/json")
+    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Authorization") String bearer /*, @ModelAttribute("file") MultipartFile file*/) {
 
         //mora da se odvoji posebno json a posebno fajl!
 
@@ -232,7 +190,7 @@ public class CommunityController {
         communityElasticAddDTO.setId(community.getId());
         communityElasticAddDTO.setName(community.getName());
         communityElasticAddDTO.setDescription(community.getDescription());
-        communityElasticAddDTO.setFile(file);
+//        communityElasticAddDTO.setFile(file);
 
         try {
             communityElasticService.indexUploadedFile(communityElasticAddDTO);
@@ -245,6 +203,18 @@ public class CommunityController {
         List<RuleDTO> ruleDTOS = dtoService.ruleToDTO(rules);
         communityDTO1.setRules(ruleDTOS);
         return new ResponseEntity<>(communityDTO1, HttpStatus.OK);
+    }
+
+    @PostMapping("{id}/flairs")
+    public ResponseEntity<FlairDTO> addFlairToCommunity(@PathVariable int id, @RequestBody FlairDTO flairDTO, @RequestHeader("Authorization") String bearer) {
+        Community community = communityService.findById(id);
+        Set<Community> communities = new HashSet<>();
+        communities.add(community);
+        Flair flair = new Flair(flairDTO);
+        flair.setCommunities(communities);
+        community.getFlairs().add(flair);
+        communityService.save(community);
+        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
     }
 
     @PostMapping("{id}/suspend")
@@ -265,6 +235,16 @@ public class CommunityController {
             postService.save(post);
         }
         return new ResponseEntity<>(new CommunityDTO(community), HttpStatus.OK);
+    }
+
+    @PostMapping("{id}/rules")
+    public ResponseEntity<RuleDTO> addRulesToCommunity(@PathVariable int id, @RequestBody RuleDTO ruleDTO, @RequestHeader("Authorization") String bearer) {
+        Community community = communityService.findById(id);
+        Rule rule = new Rule(ruleDTO);
+        rule.setCommunity(community);
+        community.getRules().add(rule);
+        communityService.save(community);
+        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
     }
 
     @PutMapping(consumes = "application/json", value = "/{id}")
@@ -295,51 +275,55 @@ public class CommunityController {
         communityService.deleteById(communityDTO.getId());
     }
 
+    @DeleteMapping("{id}/rules/{ruleId}")
+    public ResponseEntity<RuleDTO> deleteRuleFromCommunity(@PathVariable int id, @PathVariable int ruleId, @RequestHeader("Authorization") String bearer) {
+        Community community = communityService.findById(id);
+        Rule rule = ruleService.findOne(ruleId).get();
+        rule.setDeleted(true);
+        rule.setCommunity(community);
+        ruleService.save(rule);
+        return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}/flairs/{flairId}")
+    public ResponseEntity<FlairDTO> deleteFlairCommunity(@PathVariable int id, @PathVariable int flairId, @RequestHeader("Authorization") String bearer) {
+        Flair flair = flairService.findOne(flairId).get();
+        flair.setDeleted(true);
+        flairService.save(flair);
+        return new ResponseEntity<>(new FlairDTO(flair), HttpStatus.OK);
+    }
 
 
-
-    //searching
-
+    //searching with elasticsearch
 
     //by name
     @GetMapping("findByName/{name}/{type}")
     public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesByNameAndType(@PathVariable String name, @PathVariable String type) {
-
-        SearchType type1 = SearchType.valueOf(type);
-
-        return new ResponseEntity<>(communityElasticService.findAllByNameAndType(name, type1), HttpStatus.OK);
+        return new ResponseEntity<>(communityElasticService.findAllByNameAndType(name, SearchType.valueOf(type)), HttpStatus.OK);
     }
 
     //by desc
     @GetMapping("findByDesc/{desc}/{type}")
     public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesByDescAndType(@PathVariable String desc, @PathVariable String type) {
-
-        SearchType type1 = SearchType.valueOf(type);
-
-        return new ResponseEntity<>(communityElasticService.findAllByDescAndType(desc, type1), HttpStatus.OK);
+        return new ResponseEntity<>(communityElasticService.findAllByDescAndType(desc, SearchType.valueOf(type)), HttpStatus.OK);
     }
 
     @GetMapping("findByRangeOfPosts/{from}/{to}")
     public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToPost(@PathVariable int from, @PathVariable int to){
-
         return new ResponseEntity<>(communityElasticService.findCommunitiesFromToPost(from, to), HttpStatus.OK);
     }
 
     @GetMapping("findByRangeOfAverageKarma/{from}/{to}")
     public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@PathVariable double from, @PathVariable double to){
-
         return new ResponseEntity<>(communityElasticService.findCommunitiesFromToAverageKarma(from, to), HttpStatus.OK);
     }
 
-    @GetMapping("findCommunitiesByMultipleValues/{name}/{desc}")
-    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@PathVariable String name, @PathVariable String desc){
-
-        System.out.println(communityElasticService.findAllByNameAndDesc(name, desc));
-
-        if (communityElasticService.findAllByNameAndDesc(name, desc) == null) {
+    @GetMapping("findCommunitiesByMultipleValues")
+    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@RequestBody MultipleValuesDTO multipleValuesDTO){
+        if (communityElasticService.findAllByNameAndDesc(multipleValuesDTO) == null) {
             return new ResponseEntity<>(null, HttpStatus.valueOf(202));
         } else  {
-            return new ResponseEntity<>(communityElasticService.findAllByNameAndDesc(name, desc), HttpStatus.OK);
+            return new ResponseEntity<>(communityElasticService.findAllByNameAndDesc(multipleValuesDTO), HttpStatus.OK);
         }
 
     }

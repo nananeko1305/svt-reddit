@@ -9,6 +9,7 @@ import com.ftn.redditClone.elastic.mapper.CommunityElasticMapper;
 import com.ftn.redditClone.elastic.model.CommunityElastic;
 import com.ftn.redditClone.elastic.repository.CommunityElasticRepository;
 import com.ftn.redditClone.elastic.util.SearchType;
+import com.ftn.redditClone.model.dto.MultipleValuesDTO;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -51,11 +52,9 @@ public class CommunityElasticService {
         return communityElasticRepository.findAllByDescription(desc);
     }
 
-//    public List<CommunityElastic> findAllByRule(List<Rule> rules) {
-//        return communityElasticRepository.findAllByRules(rules);
-//    }
 
-//pretraga po imenu i po tipu
+    //pretraga po imenu i po tipu
+
     public List<CommunityElasticDTO> findAllByNameAndType(String name, SearchType searchType) {
 
         QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(searchType, new SimpleQueryEs("name", name));
@@ -66,6 +65,7 @@ public class CommunityElasticService {
     }
 
     //pretraga po tipu i po desc
+
     public List<CommunityElasticDTO> findAllByDescAndType(String desc, SearchType searchType) {
 
         QueryBuilder descQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(searchType, new SimpleQueryEs("description", desc));
@@ -86,7 +86,6 @@ public class CommunityElasticService {
         return elasticsearchRestTemplate.search(query, CommunityElastic.class, IndexCoordinates.of("communities"));
     }
 
-
     public List<CommunityElasticDTO> findCommunitiesFromToPost(int from, int to) {
         String range = from + "-" + to;
         QueryBuilder numberOfPostsQuery = SearchQueryGenerator.createRangeQueryBuilder(new SimpleQueryEs("numberOfPosts", range));
@@ -99,24 +98,53 @@ public class CommunityElasticService {
         return CommunityElasticMapper.mapDtos(searchBoolQuery(numberOfPostsQuery));
     }
 
-    public List<CommunityElasticDTO> findAllByNameAndDesc(String name, String description) {
+    public List<CommunityElasticDTO> findAllByNameAndDesc(MultipleValuesDTO multipleValuesDTO) {
 
-        QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("name", name));
-        QueryBuilder descriptionQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("description", description));
 
-        BoolQueryBuilder boolQueryNameAndDescription = new BoolQueryBuilder();
+        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
-        if (name.equals("0") && !description.equals("0")){
-            boolQueryNameAndDescription.must(descriptionQuery);
-        }else if (!name.equals("0") && description.equals("0")){
-            boolQueryNameAndDescription.must(nameQuery);
-        } else if (!name.equals("0") && !description.equals("0")) {
-            boolQueryNameAndDescription.must(nameQuery).must(descriptionQuery);
-        } else if (name.equals("0") && description.equals("0")) {
-            return null;
+        if (!multipleValuesDTO.getName().isEmpty()) {
+            QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("name", multipleValuesDTO.getName()));
+            boolQuery.must(nameQuery);
         }
 
-        return CommunityElasticMapper.mapDtos(searchBoolQuery(boolQueryNameAndDescription));
+        if (!multipleValuesDTO.getDescription().isEmpty()) {
+            QueryBuilder descriptionQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("description", multipleValuesDTO.getDescription()));
+            boolQuery.must(descriptionQuery);
+        }
+
+        if (multipleValuesDTO.getAverageKarma() != 0.0) {
+            QueryBuilder averageKarmaQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("averageKarma", String.valueOf(multipleValuesDTO.getAverageKarma())));
+            boolQuery.must(averageKarmaQuery);
+        }
+
+        if (!multipleValuesDTO.getNumberOfPosts().equals(0)) {
+            QueryBuilder numberOfPostsQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("numberOfPosts", String.valueOf(multipleValuesDTO.getNumberOfPosts())));
+            boolQuery.must(numberOfPostsQuery);
+        }
+
+        System.out.println(boolQuery);
+
+
+//        if (multipleValuesDTO.getName().equals("0") && !multipleValuesDTO.getDescription().equals("0")){
+//            boolQueryNameAndDescription.must(descriptionQuery);
+//        }
+//            else
+//            if (!multipleValuesDTO.getName().equals("0") && multipleValuesDTO.getDescription().equals("0")){
+//            boolQueryNameAndDescription.must(nameQuery);
+//        }
+//            else
+//            if (!multipleValuesDTO.getName().equals("0") && !multipleValuesDTO.getDescription().equals("0")) {
+//            boolQueryNameAndDescription.must(nameQuery).must(descriptionQuery);
+//        }
+//            else
+//            if (multipleValuesDTO.getName().equals("0") && multipleValuesDTO.getDescription().equals("0")) {
+//            return null;
+//        }
+
+//        return CommunityElasticMapper.mapDtos(searchBoolQuery(boolQueryNameAndDescription));
+
+        return null;
     }
 
     public DocumentHandler getHandler(String fileName) {
