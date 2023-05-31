@@ -1,6 +1,8 @@
 package com.ftn.redditClone.controller;
 
+import com.ftn.redditClone.elastic.model.CommunityElastic;
 import com.ftn.redditClone.elastic.model.PostElastic;
+import com.ftn.redditClone.elastic.service.CommunityElasticService;
 import com.ftn.redditClone.elastic.service.PostElasticService;
 import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
@@ -44,6 +46,9 @@ public class PostController {
 
     @Autowired
     public PostElasticService postElasticService;
+
+    @Autowired
+    public CommunityElasticService communityElasticService;
 
     @GetMapping(value = "{id}")
     public ResponseEntity<PostDTO> getOne(@PathVariable int id){
@@ -107,6 +112,37 @@ public class PostController {
         return new ResponseEntity<>(returnPostsDTO, HttpStatus.OK);
     }
 
+    @PostMapping(consumes = "application/json")
+    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Authorization") String bearer){
+
+        String token = bearer.substring(7);
+        String username = tokenUtils.getUsernameFromToken(token);
+
+        Community community = communityService.findById(postDTO.getCommunity().getId());
+        User user = userService.findByUsername(username);
+        Post post = new Post(postDTO);
+        post.setUser(user);
+        post.setCommunity(community);
+        if(postDTO.getFlair().getId() != 0){
+            post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
+        }else {
+            post.setFlair(null);
+        }
+        for (Banned banned : community.getBanneds()) {
+            if (banned.getUser().getId() == user.getId()) {
+                return new ResponseEntity<>(new PostDTO(), HttpStatus.OK);
+
+            }
+        }
+        Post returnPost = postService.save(post);
+        postElasticService.savePost(returnPost);
+        CommunityElastic communityElastic = communityElasticService.findById(returnPost.getCommunity().getId());
+        communityElastic.setNumberOfPosts(communityElastic.getNumberOfPosts() + 1);
+        communityElasticService.index(communityElastic);
+
+        return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);
+    }
+
     @PostMapping(value = "{id}/reactions")
     public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id) {
 
@@ -131,32 +167,7 @@ public class PostController {
         return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
     }
 
-    @PostMapping(consumes = "application/json")
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Authorization") String bearer){
 
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
-        Community community = communityService.findById(postDTO.getCommunity().getId());
-        User user = userService.findByUsername(username);
-        Post post = new Post(postDTO);
-        post.setUser(user);
-        post.setCommunity(community);
-        if(postDTO.getFlair().getId() != 0){
-            post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
-        }else {
-            post.setFlair(null);
-        }
-        for (Banned banned : community.getBanneds()) {
-            if (banned.getUser().getId() == user.getId()) {
-                return new ResponseEntity<>(new PostDTO(), HttpStatus.OK);
-
-            }
-        }
-        Post returnPost = postService.save(post);
-        postElasticService.savePost(returnPost);
-
-        return new ResponseEntity<>(new PostDTO(returnPost), HttpStatus.CREATED);
-    }
 
     @PutMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> updatePost(@RequestBody PostDTO postDTO) {

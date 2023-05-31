@@ -17,5 +17,7 @@ public interface CommunityService {
 
 	public Community updateCommunity(Community community);
 
+	double getAverageCarmaForCommunity(int communityId);
+
 	List<Community> findAllRandom();
 }

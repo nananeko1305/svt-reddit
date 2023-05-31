@@ -10,9 +10,17 @@ import com.ftn.redditClone.elastic.model.CommunityElastic;
 import com.ftn.redditClone.elastic.repository.CommunityElasticRepository;
 import com.ftn.redditClone.elastic.util.SearchType;
 import com.ftn.redditClone.model.dto.MultipleValuesDTO;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -50,6 +58,10 @@ public class CommunityElasticService {
 
     public List<CommunityElastic> findAllByDesc(String desc) {
         return communityElasticRepository.findAllByDescription(desc);
+    }
+
+    public CommunityElastic findById(int id){
+        return communityElasticRepository.findById(id).get();
     }
 
 
@@ -98,54 +110,69 @@ public class CommunityElasticService {
         return CommunityElasticMapper.mapDtos(searchBoolQuery(numberOfPostsQuery));
     }
 
-    public List<CommunityElasticDTO> findAllByNameAndDesc(MultipleValuesDTO multipleValuesDTO) {
+    public List<CommunityElasticDTO> findAllByMultipleValues(MultipleValuesDTO multipleValuesDTO) {
 
+        int br = 0;
 
-        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+        BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
 
+// Pretraživanje po nazivu zajednice
         if (!multipleValuesDTO.getName().isEmpty()) {
-            QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("name", multipleValuesDTO.getName()));
-            boolQuery.must(nameQuery);
+            QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("name", multipleValuesDTO.getName()));
+            boolQueryBuilder.should(nameQuery);
+            br++;
         }
 
+// Pretraživanje po opisu zajednice
         if (!multipleValuesDTO.getDescription().isEmpty()) {
-            QueryBuilder descriptionQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("description", multipleValuesDTO.getDescription()));
-            boolQuery.must(descriptionQuery);
+            QueryBuilder descriptionQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("description", multipleValuesDTO.getDescription()));
+            boolQueryBuilder.should(descriptionQuery);
+            br++;
         }
 
-        if (multipleValuesDTO.getAverageKarma() != 0.0) {
-            QueryBuilder averageKarmaQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("averageKarma", String.valueOf(multipleValuesDTO.getAverageKarma())));
-            boolQuery.must(averageKarmaQuery);
+// Pretraživanje po opisu pravila zajednice
+//        if (ruleDescription != null) {
+//            QueryBuilder ruleDescriptionQuery = QueryBuilders.matchQuery("ruleDescription", ruleDescription);
+//            boolQueryBuilder.must(ruleDescriptionQuery);
+//        }
+
+// Pretraživanje po opsegu broja objava
+        if (multipleValuesDTO.getMinPosts() != null || multipleValuesDTO.getMaxPosts() != null) {
+            RangeQueryBuilder postsRangeQuery = QueryBuilders.rangeQuery("numberOfPosts");
+            if (multipleValuesDTO.getMinPosts() != null) {
+                postsRangeQuery.gte(multipleValuesDTO.getMinPosts());
+            }
+            if (multipleValuesDTO.getMaxPosts() != null) {
+                postsRangeQuery.lte(multipleValuesDTO.getMaxPosts());
+            }
+            boolQueryBuilder.should(postsRangeQuery);
+            br++;
         }
 
-        if (!multipleValuesDTO.getNumberOfPosts().equals(0)) {
-            QueryBuilder numberOfPostsQuery = SearchQueryGenerator.createMatchQueryBuilder(new SimpleQueryEs("numberOfPosts", String.valueOf(multipleValuesDTO.getNumberOfPosts())));
-            boolQuery.must(numberOfPostsQuery);
+// Pretraživanje po opsegu prosečne karme zajednice
+        if (multipleValuesDTO.getMinKarma() != null || multipleValuesDTO.getMaxKarma() != null) {
+            RangeQueryBuilder karmaRangeQuery = QueryBuilders.rangeQuery("averageKarma");
+            if (multipleValuesDTO.getMinKarma() != null) {
+                karmaRangeQuery.gte(multipleValuesDTO.getMinKarma());
+            }
+            if (multipleValuesDTO.getMaxKarma() != null) {
+                karmaRangeQuery.lte(multipleValuesDTO.getMaxKarma());
+            }
+            boolQueryBuilder.should(karmaRangeQuery);
+            br++;
         }
 
-        System.out.println(boolQuery);
+// Kombinacija prethodnih parametara pretrage
+        if (!multipleValuesDTO.getSearchAccuracy().isEmpty() && multipleValuesDTO.getSearchAccuracy().equalsIgnoreCase("OR")) {
+            boolQueryBuilder.minimumShouldMatch(1); // Jedan od must uslova mora biti zadovoljen
+        } else {
+            boolQueryBuilder.minimumShouldMatch(br); // Svi must uslovi moraju biti zadovoljeni
+        }
 
+        return CommunityElasticMapper.mapDtos(searchBoolQuery(boolQueryBuilder));
 
-//        if (multipleValuesDTO.getName().equals("0") && !multipleValuesDTO.getDescription().equals("0")){
-//            boolQueryNameAndDescription.must(descriptionQuery);
-//        }
-//            else
-//            if (!multipleValuesDTO.getName().equals("0") && multipleValuesDTO.getDescription().equals("0")){
-//            boolQueryNameAndDescription.must(nameQuery);
-//        }
-//            else
-//            if (!multipleValuesDTO.getName().equals("0") && !multipleValuesDTO.getDescription().equals("0")) {
-//            boolQueryNameAndDescription.must(nameQuery).must(descriptionQuery);
-//        }
-//            else
-//            if (multipleValuesDTO.getName().equals("0") && multipleValuesDTO.getDescription().equals("0")) {
-//            return null;
-//        }
-
-//        return CommunityElasticMapper.mapDtos(searchBoolQuery(boolQueryNameAndDescription));
-
-        return null;
     }
+
 
     public DocumentHandler getHandler(String fileName) {
         return getDocumentHandler(fileName);
