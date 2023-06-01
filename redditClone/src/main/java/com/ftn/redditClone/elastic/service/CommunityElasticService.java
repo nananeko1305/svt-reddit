@@ -1,26 +1,19 @@
 package com.ftn.redditClone.elastic.service;
 
-import com.ftn.redditClone.elastic.dto.CommunityElasticAddDTO;
-import com.ftn.redditClone.elastic.dto.CommunityElasticDTO;
-import com.ftn.redditClone.elastic.dto.SimpleQueryEs;
+import com.ftn.redditClone.elastic.dto.*;
 import com.ftn.redditClone.elastic.lucene.handlers.DocumentHandler;
 import com.ftn.redditClone.elastic.lucene.handlers.PDFHandler;
 import com.ftn.redditClone.elastic.mapper.CommunityElasticMapper;
+import com.ftn.redditClone.elastic.mapper.PostElasticMapper;
 import com.ftn.redditClone.elastic.model.CommunityElastic;
+import com.ftn.redditClone.elastic.model.PostElastic;
 import com.ftn.redditClone.elastic.repository.CommunityElasticRepository;
-import com.ftn.redditClone.elastic.util.SearchType;
-import com.ftn.redditClone.model.dto.MultipleValuesDTO;
-import org.apache.http.HttpHost;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -37,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CommunityElasticService {
@@ -55,36 +49,8 @@ public class CommunityElasticService {
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
     }
 
-
-    public List<CommunityElastic> findAllByDesc(String desc) {
-        return communityElasticRepository.findAllByDescription(desc);
-    }
-
     public CommunityElastic findById(int id){
         return communityElasticRepository.findById(id).get();
-    }
-
-
-    //pretraga po imenu i po tipu
-
-    public List<CommunityElasticDTO> findAllByNameAndType(String name, SearchType searchType) {
-
-        QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(searchType, new SimpleQueryEs("name", name));
-
-        BoolQueryBuilder boolQueryName = QueryBuilders.boolQuery().must(nameQuery);
-
-        return CommunityElasticMapper.mapDtos(searchBoolQuery(boolQueryName));
-    }
-
-    //pretraga po tipu i po desc
-
-    public List<CommunityElasticDTO> findAllByDescAndType(String desc, SearchType searchType) {
-
-        QueryBuilder descQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(searchType, new SimpleQueryEs("description", desc));
-
-        BoolQueryBuilder boolQueryDesc = QueryBuilders.boolQuery().must(descQuery);
-
-        return CommunityElasticMapper.mapDtos(searchBoolQuery(boolQueryDesc));
     }
 
     public void index(CommunityElastic community) {
@@ -96,18 +62,6 @@ public class CommunityElasticService {
         NativeSearchQuery query = new NativeSearchQueryBuilder().withQuery(boolQueryBuilder).build();
 
         return elasticsearchRestTemplate.search(query, CommunityElastic.class, IndexCoordinates.of("communities"));
-    }
-
-    public List<CommunityElasticDTO> findCommunitiesFromToPost(int from, int to) {
-        String range = from + "-" + to;
-        QueryBuilder numberOfPostsQuery = SearchQueryGenerator.createRangeQueryBuilder(new SimpleQueryEs("numberOfPosts", range));
-        return CommunityElasticMapper.mapDtos(searchBoolQuery(numberOfPostsQuery));
-    }
-
-    public List<CommunityElasticDTO> findCommunitiesFromToAverageKarma(double from, double to) {
-        String range = from + "-" + to;
-        QueryBuilder numberOfPostsQuery = SearchQueryGenerator.createRangeQueryBuilder(new SimpleQueryEs("averageKarma", range));
-        return CommunityElasticMapper.mapDtos(searchBoolQuery(numberOfPostsQuery));
     }
 
     public List<CommunityElasticDTO> findAllByMultipleValues(MultipleValuesDTO multipleValuesDTO) {
@@ -129,6 +83,12 @@ public class CommunityElasticService {
             boolQueryBuilder.should(descriptionQuery);
             br++;
         }
+
+//        if (!multipleValuesDTO.getPdfDescription().isEmpty()) {
+//            QueryBuilder pdfDescriptionQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("pdfDescription", multipleValuesDTO.getPdfDescription()));
+//            boolQueryBuilder.should(pdfDescriptionQuery);
+//            br++;
+//        }
 
 // Pretraživanje po opisu pravila zajednice
 //        if (ruleDescription != null) {
@@ -173,6 +133,27 @@ public class CommunityElasticService {
 
     }
 
+    public List<CommunityElasticDTO> searchByRule(MultipleValuesDTO multipleValuesDTO) {
+
+        NativeSearchQueryBuilder searchQueryBuilder = new NativeSearchQueryBuilder();
+        QueryBuilder queryBuilder;
+
+        if ("FUZZY".equalsIgnoreCase(multipleValuesDTO.getSearchType().toString())) {
+            queryBuilder = QueryBuilders.matchQuery("rules.description", multipleValuesDTO.getRule())
+                    .fuzziness(Fuzziness.AUTO);
+        } else if ("PHRASE".equalsIgnoreCase(multipleValuesDTO.getSearchType().toString())) {
+            queryBuilder = QueryBuilders.matchPhraseQuery("rules.description", multipleValuesDTO.getRule());
+        } else {
+            queryBuilder = QueryBuilders.termQuery("rules.description", multipleValuesDTO.getRule());
+        }
+
+        NativeSearchQuery searchQuery = searchQueryBuilder.withQuery(QueryBuilders.nestedQuery("rules", queryBuilder, ScoreMode.None)).build();
+
+        SearchHits<CommunityElastic> searchHits = elasticsearchRestTemplate.search(searchQuery, CommunityElastic.class);
+
+        return CommunityElasticMapper.mapDtos(searchHits);
+    }
+
 
     public DocumentHandler getHandler(String fileName) {
         return getDocumentHandler(fileName);
@@ -205,7 +186,7 @@ public class CommunityElasticService {
 
                 String fileName = saveUploadedFileInFolder(elasticCommunityDTO.getFile());
                 if (fileName != null) {
-                    CommunityElastic communityIndexUnit = getHandler(fileName).getIndexUnit(new File(fileName));
+                    CommunityElastic communityIndexUnit = getHandler(fileName).getIndexCommunity(new File(fileName));
                     communityIndexUnit.setNumberOfPosts(0);
                     communityIndexUnit.setAverageKarma(0.0);
                     index(communityIndexUnit);
@@ -223,6 +204,7 @@ public class CommunityElasticService {
             index(communityIndexUnit);
         }
     }
+
 
 }
 

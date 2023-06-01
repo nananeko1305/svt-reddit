@@ -1,5 +1,10 @@
 package com.ftn.redditClone.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ftn.redditClone.elastic.dto.CommunityElasticDTO;
+import com.ftn.redditClone.elastic.dto.MultipleValuesDTO;
+import com.ftn.redditClone.elastic.dto.MultipleValuesPostDTO;
+import com.ftn.redditClone.elastic.dto.PostElasticDTO;
 import com.ftn.redditClone.elastic.model.CommunityElastic;
 import com.ftn.redditClone.elastic.model.PostElastic;
 import com.ftn.redditClone.elastic.service.CommunityElasticService;
@@ -11,9 +16,13 @@ import com.ftn.redditClone.service.*;
 import org.hibernate.mapping.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -49,6 +58,9 @@ public class PostController {
 
     @Autowired
     public CommunityElasticService communityElasticService;
+
+    @Autowired
+    public ObjectMapper objectMapper;
 
     @GetMapping(value = "{id}")
     public ResponseEntity<PostDTO> getOne(@PathVariable int id){
@@ -112,19 +124,33 @@ public class PostController {
         return new ResponseEntity<>(returnPostsDTO, HttpStatus.OK);
     }
 
-    @PostMapping(consumes = "application/json")
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostDTO postDTO, @RequestHeader("Authorization") String bearer){
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PostDTO> createPost(@RequestParam("pdfFile") MultipartFile pdfFile,
+                                              @RequestParam("jsonFile") String jsonFile,
+                                              @RequestHeader("Authorization") String bearer){
+        Post post = new Post();
+        String pdfSTR = "";
+
+        try {
+            post = objectMapper.readValue(jsonFile.getBytes(), Post.class);
+            if(pdfFile != null){
+                if(!pdfFile.isEmpty()){
+                    pdfSTR = postElasticService.indexUploadedFile(pdfFile);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
 
-        Community community = communityService.findById(postDTO.getCommunity().getId());
+        Community community = communityService.findById(post.getCommunity().getId());
         User user = userService.findByUsername(username);
-        Post post = new Post(postDTO);
         post.setUser(user);
         post.setCommunity(community);
-        if(postDTO.getFlair().getId() != 0){
-            post.setFlair(flairService.findOne(postDTO.getFlair().getId()).get());
+        if(post.getFlair().getId() != 0){
+            post.setFlair(flairService.findOne(post.getFlair().getId()).get());
         }else {
             post.setFlair(null);
         }
@@ -135,7 +161,8 @@ public class PostController {
             }
         }
         Post returnPost = postService.save(post);
-        postElasticService.savePost(returnPost);
+
+        postElasticService.savePost(returnPost, pdfSTR);
         CommunityElastic communityElastic = communityElasticService.findById(returnPost.getCommunity().getId());
         communityElastic.setNumberOfPosts(communityElastic.getNumberOfPosts() + 1);
         communityElasticService.index(communityElastic);
@@ -200,4 +227,25 @@ public class PostController {
 
         return new ResponseEntity<>(new PostDTO(post), HttpStatus.OK);
     }
+
+    public String convertMultipartFileToString(MultipartFile multipartFile) throws IOException {
+        byte[] bytes = multipartFile.getBytes();
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    @GetMapping("findPostsByMultipleValues")
+    public ResponseEntity<List<PostElasticDTO>> findCommunitiesByMultipleValues(@RequestBody MultipleValuesPostDTO multipleValuesPostDTO){
+        return new ResponseEntity<>(postElasticService.findAllByMultipleValues(multipleValuesPostDTO), HttpStatus.OK);
+    }
+
+    @GetMapping("findPostsByComment")
+    public ResponseEntity<List<PostElasticDTO>> findCommunitiesByCommentText(@RequestBody MultipleValuesPostDTO multipleValuesPostDTO){
+        return new ResponseEntity<>(postElasticService.searchByCommentText(multipleValuesPostDTO), HttpStatus.OK);
+    }
+
+    @GetMapping("findPostsByFlair")
+    public ResponseEntity<List<PostElasticDTO>> findCommunitiesByFlair(@RequestBody MultipleValuesPostDTO multipleValuesPostDTO){
+        return new ResponseEntity<>(postElasticService.searchByFlair(multipleValuesPostDTO), HttpStatus.OK);
+    }
+
 }

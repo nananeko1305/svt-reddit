@@ -8,13 +8,12 @@ import java.util.List;
 
 public interface PostService {
 
-    public List<Post> findAll();
+     List<Post> findAll();
+     Post save(Post post);
 
-    public Post save(Post post);
+    void delete(Post post);
 
-    public void delete(Post post);
-
-    public Post findById(int id);
+    Post findById(int id);
 
     List<Post> sortedList(String sortType);
 

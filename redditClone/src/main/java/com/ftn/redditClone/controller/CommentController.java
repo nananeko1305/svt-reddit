@@ -1,5 +1,9 @@
 package com.ftn.redditClone.controller;
 
+import com.ftn.redditClone.elastic.model.CommentElastic;
+import com.ftn.redditClone.elastic.model.PostElastic;
+import com.ftn.redditClone.elastic.service.CommunityElasticService;
+import com.ftn.redditClone.elastic.service.PostElasticService;
 import com.ftn.redditClone.model.dto.CommentDTO;
 import com.ftn.redditClone.model.dto.PostDTO;
 import com.ftn.redditClone.model.dto.ReactionDTO;
@@ -38,21 +42,13 @@ public class CommentController {
     @Autowired
     private CommunityService communityService;
 
-    @PostMapping(value = "{id}/reactions")
-    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id){
-        String token = bearer.substring(7);
-        String username = tokenUtils.getUsernameFromToken(token);
-        Reaction reaction = new Reaction(reactionDTO);
-        User user = userService.findByUsername(username);
-        reaction.setUser(user);
-        Comment comment = commentService.findById(id).get();
-        reaction.setComment(comment);
-        reaction.setPost(null);
-        if(reactionService.alreadyVotedComment(user.getId(), comment.getId()).isEmpty()){
-            reactionService.saveReaction(reaction);
-        }
-        return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
-    }
+    @Autowired
+    private CommunityElasticService communityElasticService;
+
+    @Autowired
+    private PostElasticService postElasticService;
+
+
 
     @GetMapping()
     public ResponseEntity<List<CommentDTO>> findAll(){
@@ -90,11 +86,37 @@ public class CommentController {
 
             }
         }
-        commentService.save(comment);
+        comment = commentService.save(comment);
+        PostElastic postElastic = postElasticService.getOnePost(comment.getPost().getId());
+        CommentElastic commentElastic = new CommentElastic(comment);
+        List<CommentElastic> commentElastics = postElastic.getCommentElasticList();
+        commentElastics.add(commentElastic);
+        postElastic.setCommentElasticList(commentElastics);
+        if (postElastic.getNumberOfComments() == null) {
+            postElastic.setNumberOfComments(1);
+        }else {
+            postElastic.setNumberOfComments(postElastic.getNumberOfComments() + 1);
+        }
+        postElasticService.savePostElastic(postElastic);
 
         return new ResponseEntity<>(new CommentDTO(comment), HttpStatus.OK);
     }
 
+    @PostMapping(value = "{id}/reactions")
+    public ResponseEntity<ReactionDTO> UpvoteDownvote(@RequestHeader("Authorization") String bearer, @RequestBody ReactionDTO reactionDTO, @PathVariable int id){
+        String token = bearer.substring(7);
+        String username = tokenUtils.getUsernameFromToken(token);
+        Reaction reaction = new Reaction(reactionDTO);
+        User user = userService.findByUsername(username);
+        reaction.setUser(user);
+        Comment comment = commentService.findById(id).get();
+        reaction.setComment(comment);
+        reaction.setPost(null);
+        if(reactionService.alreadyVotedComment(user.getId(), comment.getId()).isEmpty()){
+            reactionService.saveReaction(reaction);
+        }
+        return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
+    }
     @DeleteMapping("{id}")
     public ResponseEntity<CommentDTO> deleteComment(@PathVariable int id){
         Comment comment = commentService.findById(id).get();

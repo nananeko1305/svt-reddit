@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface CommentService {
 
     List<Comment> findAll();
-    void save(Comment Comment);
+    Comment save(Comment Comment);
     void deleteById(int id);
     Optional<Comment> findById(int id);
     Comment updateComment(Comment Comment);

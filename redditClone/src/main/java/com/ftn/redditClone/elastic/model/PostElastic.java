@@ -43,7 +43,7 @@ public class PostElastic {
     @Field(type = FieldType.Object)
     private FlairElastic flairElastic;
 
-    @Field(type = FieldType.Object)
+    @Field(type = FieldType.Nested)
     private List<CommentElastic> commentElasticList;
 
     @Field(type = FieldType.Text)

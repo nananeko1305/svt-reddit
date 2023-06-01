@@ -40,9 +40,6 @@ public class CommunityServiceImpl implements CommunityService{
 
 	@Override
 	public Community save(Community community) {
-
-
-
 		return communityRepository.save(community);
 	}
 

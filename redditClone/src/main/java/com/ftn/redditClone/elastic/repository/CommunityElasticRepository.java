@@ -5,6 +5,7 @@ import com.ftn.redditClone.model.entity.Rule;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Repository
@@ -16,5 +17,6 @@ public interface CommunityElasticRepository extends ElasticsearchRepository<Comm
 
     List<CommunityElastic> findAllByRules(List<Rule> rules);
 
+//    LinkedList<CommunityElastic> findAllByRules
 
 }

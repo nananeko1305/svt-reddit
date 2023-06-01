@@ -1,6 +1,8 @@
 package com.ftn.redditClone.elastic.lucene.handlers;
 
 import com.ftn.redditClone.elastic.model.CommunityElastic;
+import com.ftn.redditClone.elastic.model.PostElastic;
+import com.ftn.redditClone.model.entity.Post;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -13,8 +15,30 @@ import java.io.IOException;
 
 public class PDFHandler extends DocumentHandler{
     @Override
-    public CommunityElastic getIndexUnit(File file) {
+    public CommunityElastic getIndexCommunity(File file) {
         CommunityElastic retVal = new CommunityElastic();
+        try {
+            PDFParser parser = new PDFParser((RandomAccessRead) new RandomAccessFile(file, "r"));
+            parser.parse();
+            String text = getText(parser);
+            retVal.setPdfDescription(text);
+
+            PDDocument pdf = parser.getPDDocument();
+            PDDocumentInformation info = pdf.getDocumentInformation();
+
+            retVal.setFilename(file.getCanonicalPath());
+
+            pdf.close();
+        } catch (IOException e) {
+            System.out.println("Error while converting document to PDF");
+        }
+
+        return retVal;
+    }
+
+    @Override
+    public PostElastic getIndexPost(File file) {
+        PostElastic retVal = new PostElastic();
         try {
             PDFParser parser = new PDFParser((RandomAccessRead) new RandomAccessFile(file, "r"));
             parser.parse();

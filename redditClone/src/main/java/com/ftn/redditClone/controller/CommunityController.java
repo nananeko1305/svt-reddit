@@ -1,21 +1,19 @@
 package com.ftn.redditClone.controller;
 
-import com.ftn.redditClone.elastic.dto.CommunityElasticAddDTO;
 import com.ftn.redditClone.elastic.dto.CommunityElasticDTO;
+import com.ftn.redditClone.elastic.dto.MultipleValuesDTO;
 import com.ftn.redditClone.elastic.model.CommunityElastic;
+import com.ftn.redditClone.elastic.model.RuleElastic;
 import com.ftn.redditClone.elastic.service.CommunityElasticService;
 import com.ftn.redditClone.elastic.util.SearchType;
 import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -184,7 +182,7 @@ public class CommunityController {
         }
         community.setRules(rules);
         community.setFlairs(flairs);
-        communityService.save(community);
+        community = communityService.save(community);
         moderatorService.save(moderator);
 
         double averageKarma = communityService.getAverageCarmaForCommunity(community.getId());
@@ -236,7 +234,13 @@ public class CommunityController {
         Rule rule = new Rule(ruleDTO);
         rule.setCommunity(community);
         community.getRules().add(rule);
-        communityService.save(community);
+        community = communityService.save(community);
+        rule = community.getRules().get(community.getRules().size() - 1);
+
+        CommunityElastic communityElastic = communityElasticService.findById(community.getId());
+        communityElastic.getRules().add(new RuleElastic(rule));
+        communityElasticService.index(communityElastic);
+
         return new ResponseEntity<>(new RuleDTO(rule), HttpStatus.OK);
     }
 
@@ -294,33 +298,15 @@ public class CommunityController {
 
     //searching with elasticsearch
 
-    //by name
-    @GetMapping("findByName/{name}/{type}")
-    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesByNameAndType(@PathVariable String name, @PathVariable String type) {
-        return new ResponseEntity<>(communityElasticService.findAllByNameAndType(name, SearchType.valueOf(type)), HttpStatus.OK);
-    }
-
-    //by desc
-    @GetMapping("findByDesc/{desc}/{type}")
-    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesByDescAndType(@PathVariable String desc, @PathVariable String type) {
-        return new ResponseEntity<>(communityElasticService.findAllByDescAndType(desc, SearchType.valueOf(type)), HttpStatus.OK);
-    }
-
-    @GetMapping("findByRangeOfPosts/{from}/{to}")
-    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToPost(@PathVariable int from, @PathVariable int to){
-        return new ResponseEntity<>(communityElasticService.findCommunitiesFromToPost(from, to), HttpStatus.OK);
-    }
-
-    @GetMapping("findByRangeOfAverageKarma/{from}/{to}")
-    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@PathVariable double from, @PathVariable double to){
-        return new ResponseEntity<>(communityElasticService.findCommunitiesFromToAverageKarma(from, to), HttpStatus.OK);
-    }
-
     @GetMapping("findCommunitiesByMultipleValues")
-    public ResponseEntity<List<CommunityElasticDTO>> findCommunitiesFromToAverageKarma(@RequestBody MultipleValuesDTO multipleValuesDTO){
+    public ResponseEntity<List<CommunityElasticDTO>> findAllByMultipleValues(@RequestBody MultipleValuesDTO multipleValuesDTO){
         return new ResponseEntity<>(communityElasticService.findAllByMultipleValues(multipleValuesDTO), HttpStatus.OK);
     }
 
+    @GetMapping("findCommunitiesByRule")
+    public ResponseEntity<List<CommunityElasticDTO>> findAllByRule(@RequestBody MultipleValuesDTO multipleValuesDTO){
+        return new ResponseEntity<>(communityElasticService.searchByRule(multipleValuesDTO), HttpStatus.OK);
+    }
 
 
 
