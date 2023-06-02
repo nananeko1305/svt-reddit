@@ -91,11 +91,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
                 .antMatchers(HttpMethod.GET, "/community/findByDesc/{desc}/{type}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/findByRangeOfPosts/{from}/{to}").permitAll()
                 .antMatchers(HttpMethod.GET, "/community/findByRangeOfAverageKarma/{from}/{to}").permitAll()
-                .antMatchers(HttpMethod.GET, "/community/findCommunitiesByMultipleValues").permitAll()
-                .antMatchers(HttpMethod.GET, "/community/findCommunitiesByRule").permitAll()
-                .antMatchers(HttpMethod.GET, "/posts/findPostsByMultipleValues").permitAll()
-                .antMatchers(HttpMethod.GET, "/posts/findPostsByComment").permitAll()
-                .antMatchers(HttpMethod.GET, "/posts/findPostsByFlair").permitAll()
+                .antMatchers(HttpMethod.POST, "/community/findCommunitiesByMultipleValues").permitAll()
+                .antMatchers(HttpMethod.POST, "/community/findCommunitiesByRule").permitAll()
+                .antMatchers(HttpMethod.POST, "/posts/findPostsByMultipleValues").permitAll()
+                .antMatchers(HttpMethod.POST, "/posts/findPostsByComment").permitAll()
+                .antMatchers(HttpMethod.POST, "/posts/findPostsByFlair").permitAll()
 
 
 

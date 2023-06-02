@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class CommunityElasticService {
 
     //putanja do fajla
-    @Value("$[files.path]")
+    @Value("${files.path}")
     private String filesPath;
 
     private final CommunityElasticRepository communityElasticRepository;
@@ -71,15 +71,21 @@ public class CommunityElasticService {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
 
 // Pretraživanje po nazivu zajednice
-        if (!multipleValuesDTO.getName().isEmpty()) {
+        if (multipleValuesDTO.getName() != null && !multipleValuesDTO.getName().isEmpty()) {
             QueryBuilder nameQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("name", multipleValuesDTO.getName()));
             boolQueryBuilder.should(nameQuery);
             br++;
         }
 
 // Pretraživanje po opisu zajednice
-        if (!multipleValuesDTO.getDescription().isEmpty()) {
+        if (multipleValuesDTO.getDescription() != null && !multipleValuesDTO.getDescription().isEmpty()) {
             QueryBuilder descriptionQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("description", multipleValuesDTO.getDescription()));
+            boolQueryBuilder.should(descriptionQuery);
+            br++;
+        }
+
+        if (multipleValuesDTO.getPdfDescription() != null && !multipleValuesDTO.getPdfDescription().isEmpty()) {
+            QueryBuilder descriptionQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("pdfDescription", multipleValuesDTO.getPdfDescription()));
             boolQueryBuilder.should(descriptionQuery);
             br++;
         }
@@ -178,31 +184,19 @@ public class CommunityElasticService {
         return retVal;
     }
 
-    public void indexUploadedFile(CommunityElasticAddDTO elasticCommunityDTO) throws IOException {
-        if (elasticCommunityDTO.getFile() != null) {
-                if (elasticCommunityDTO.getFile().isEmpty()) {
-                   return;
-                }
+    public String indexUploadedFile(MultipartFile multipartFile) throws IOException {
+        if (multipartFile != null) {
+            if (multipartFile.isEmpty()) {
+                return "";
+            }
+            String fileName = saveUploadedFileInFolder(multipartFile);
+            if (fileName != null) {
+                CommunityElastic communityElastic = getHandler(fileName).getIndexCommunity(new File(fileName));
+                return communityElastic.getPdfDescription();
+            }
 
-                String fileName = saveUploadedFileInFolder(elasticCommunityDTO.getFile());
-                if (fileName != null) {
-                    CommunityElastic communityIndexUnit = getHandler(fileName).getIndexCommunity(new File(fileName));
-                    communityIndexUnit.setNumberOfPosts(0);
-                    communityIndexUnit.setAverageKarma(0.0);
-                    index(communityIndexUnit);
-                }
-
-        } else {
-            CommunityElastic communityIndexUnit = new CommunityElastic();
-            communityIndexUnit.setId(elasticCommunityDTO.getId());
-            communityIndexUnit.setName(elasticCommunityDTO.getName());
-            communityIndexUnit.setDescription(elasticCommunityDTO.getDescription());
-            communityIndexUnit.setNumberOfPosts(0);
-            communityIndexUnit.setAverageKarma(0.0);
-            communityIndexUnit.setPdfDescription(null);
-            communityIndexUnit.setFilename(null);
-            index(communityIndexUnit);
         }
+        return null;
     }
 
 

@@ -1,5 +1,6 @@
 package com.ftn.redditClone.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ftn.redditClone.elastic.dto.CommunityElasticDTO;
 import com.ftn.redditClone.elastic.dto.MultipleValuesDTO;
 import com.ftn.redditClone.elastic.model.CommunityElastic;
@@ -10,9 +11,12 @@ import com.ftn.redditClone.model.dto.*;
 import com.ftn.redditClone.model.entity.*;
 import com.ftn.redditClone.security.TokenUtils;
 import com.ftn.redditClone.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,7 +45,9 @@ public class CommunityController {
 
     private final CommunityElasticService communityElasticService;
 
-    public CommunityController(CommunityService communityService, PostService postService, UserService userService, ModeratorService moderatorService, TokenUtils tokenUtils, DTOService dtoService, FlairService flairService, RuleService ruleService, CommunityElasticService communityElasticService) {
+    public final ObjectMapper objectMapper;
+
+    public CommunityController(CommunityService communityService, PostService postService, UserService userService, ModeratorService moderatorService, TokenUtils tokenUtils, DTOService dtoService, FlairService flairService, RuleService ruleService, CommunityElasticService communityElasticService, ObjectMapper objectMapper) {
         this.communityService = communityService;
         this.postService = postService;
         this.userService = userService;
@@ -51,6 +57,7 @@ public class CommunityController {
         this.flairService = flairService;
         this.ruleService = ruleService;
         this.communityElasticService = communityElasticService;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping()
@@ -154,29 +161,38 @@ public class CommunityController {
         return new ResponseEntity<>(dtoService.reportToDTO(reports), HttpStatus.OK);
     }
 
-    @PostMapping(consumes = "application/json")
-    public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO, @RequestHeader("Authorization") String bearer /*, @ModelAttribute("file") MultipartFile file*/) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CommunityDTO> createCommunity(@RequestParam("pdfFile") MultipartFile pdfFile,
+                                                        @RequestParam("jsonFile") String jsonFile,
+                                                        @RequestHeader("Authorization") String bearer) {
+        Community community = new Community();
+        String pdfSTR = "";
 
-        //mora da se odvoji posebno json a posebno fajl!
+        try {
+            community = objectMapper.readValue(jsonFile.getBytes(), Community.class);
+            if(pdfFile != null){
+                if(!pdfFile.isEmpty()){
+                    pdfSTR = communityElasticService.indexUploadedFile(pdfFile);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String token = bearer.substring(7);
         String username = tokenUtils.getUsernameFromToken(token);
-        communityDTO.setId(null);
-        Community community = new Community(communityDTO);
+
         community = communityService.save(community);
         Moderator moderator = new Moderator(0, userService.findByUsername(username), community, false);
         List<Flair> flairs = new ArrayList<>();
         List<Rule> rules = new ArrayList<>();
-        if (!communityDTO.getFlairs().isEmpty()) {
-            for (FlairDTO flairDTO : communityDTO.getFlairs()) {
-                flairs.add(new Flair(flairDTO));
-            }
+        if (!community.getFlairs().isEmpty()) {
+            flairs.addAll(community.getFlairs());
         }
-        if (!communityDTO.getRules().isEmpty()) {
-            for (RuleDTO ruleDTO : communityDTO.getRules()) {
-                Rule rule = new Rule(ruleDTO);
+        if (!community.getRules().isEmpty()) {
+            for (Rule rule : community.getRules()) {
                 rule.setCommunity(community);
-                rule.setDescription(ruleDTO.getDescription());
+                rule.setDescription(rule.getDescription());
                 rules.add(rule);
             }
         }
@@ -187,7 +203,8 @@ public class CommunityController {
 
         double averageKarma = communityService.getAverageCarmaForCommunity(community.getId());
 
-        communityElasticService.index(new CommunityElastic(community, averageKarma, ""));
+
+        communityElasticService.index(new CommunityElastic(community, averageKarma, pdfSTR));
 
         CommunityDTO communityDTO1 = new CommunityDTO(community);
         communityDTO1.setFlairs(dtoService.flairToDTO(flairs));
@@ -298,12 +315,12 @@ public class CommunityController {
 
     //searching with elasticsearch
 
-    @GetMapping("findCommunitiesByMultipleValues")
+    @PostMapping("findCommunitiesByMultipleValues")
     public ResponseEntity<List<CommunityElasticDTO>> findAllByMultipleValues(@RequestBody MultipleValuesDTO multipleValuesDTO){
-        return new ResponseEntity<>(communityElasticService.findAllByMultipleValues(multipleValuesDTO), HttpStatus.OK);
+            return new ResponseEntity<>(communityElasticService.findAllByMultipleValues(multipleValuesDTO), HttpStatus.OK);
     }
 
-    @GetMapping("findCommunitiesByRule")
+    @PostMapping("findCommunitiesByRule")
     public ResponseEntity<List<CommunityElasticDTO>> findAllByRule(@RequestBody MultipleValuesDTO multipleValuesDTO){
         return new ResponseEntity<>(communityElasticService.searchByRule(multipleValuesDTO), HttpStatus.OK);
     }

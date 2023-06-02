@@ -194,8 +194,6 @@ public class PostController {
         return new ResponseEntity<>(new ReactionDTO(reaction), HttpStatus.OK);
     }
 
-
-
     @PutMapping(consumes = "application/json")
     public ResponseEntity<PostDTO> updatePost(@RequestBody PostDTO postDTO) {
 
@@ -233,17 +231,17 @@ public class PostController {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
-    @GetMapping("findPostsByMultipleValues")
+    @PostMapping("findPostsByMultipleValues")
     public ResponseEntity<List<PostElasticDTO>> findCommunitiesByMultipleValues(@RequestBody MultipleValuesPostDTO multipleValuesPostDTO){
         return new ResponseEntity<>(postElasticService.findAllByMultipleValues(multipleValuesPostDTO), HttpStatus.OK);
     }
 
-    @GetMapping("findPostsByComment")
+    @PostMapping("findPostsByComment")
     public ResponseEntity<List<PostElasticDTO>> findCommunitiesByCommentText(@RequestBody MultipleValuesPostDTO multipleValuesPostDTO){
         return new ResponseEntity<>(postElasticService.searchByCommentText(multipleValuesPostDTO), HttpStatus.OK);
     }
 
-    @GetMapping("findPostsByFlair")
+    @PostMapping("findPostsByFlair")
     public ResponseEntity<List<PostElasticDTO>> findCommunitiesByFlair(@RequestBody MultipleValuesPostDTO multipleValuesPostDTO){
         return new ResponseEntity<>(postElasticService.searchByFlair(multipleValuesPostDTO), HttpStatus.OK);
     }
