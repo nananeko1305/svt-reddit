@@ -90,18 +90,6 @@ public class CommunityElasticService {
             br++;
         }
 
-//        if (!multipleValuesDTO.getPdfDescription().isEmpty()) {
-//            QueryBuilder pdfDescriptionQuery = SearchQueryGenerator.createMatchQueryBuilderTerm(multipleValuesDTO.getSearchType(), new SimpleQueryEs("pdfDescription", multipleValuesDTO.getPdfDescription()));
-//            boolQueryBuilder.should(pdfDescriptionQuery);
-//            br++;
-//        }
-
-// Pretraživanje po opisu pravila zajednice
-//        if (ruleDescription != null) {
-//            QueryBuilder ruleDescriptionQuery = QueryBuilders.matchQuery("ruleDescription", ruleDescription);
-//            boolQueryBuilder.must(ruleDescriptionQuery);
-//        }
-
 // Pretraživanje po opsegu broja objava
         if (multipleValuesDTO.getMinPosts() != null || multipleValuesDTO.getMaxPosts() != null) {
             RangeQueryBuilder postsRangeQuery = QueryBuilders.rangeQuery("numberOfPosts");

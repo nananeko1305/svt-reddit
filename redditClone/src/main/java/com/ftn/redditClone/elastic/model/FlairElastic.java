@@ -19,18 +19,11 @@ import javax.persistence.GenerationType;
 @NoArgsConstructor
 @ToString
 @Builder
-@Document(indexName = "flairs")
-@Setting(settingPath = "/analyzers/serbianAnalyzer.json")
 public class FlairElastic {
 
-    @Id
-    private int id;
-
-    @Field(type = FieldType.Text)
     private String name;
 
     public FlairElastic(Flair name){
-        this.id = name.getId();
         this.name = name.getName();
     }
 }

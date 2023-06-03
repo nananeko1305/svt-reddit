@@ -14,18 +14,11 @@ import javax.persistence.Id;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(indexName = "rules")
-@Setting(settingPath = "/analyzers/serbianAnalyzer.json")
 public class RuleElastic {
 
-    @Id
-    private int id;
-
-    @Field(type = FieldType.Text)
     private String description;
 
     public RuleElastic(Rule rule) {
-        this.id = rule.getId();
         this.description = rule.getDescription();
     }
 }

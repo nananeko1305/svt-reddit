@@ -15,18 +15,11 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @ToString
 @Builder
-@Document(indexName = "comments")
-@Setting(settingPath = "/analyzers/serbianAnalyzer.json")
 public class CommentElastic {
 
-    @Id
-    private int id;
-
-    @Field(type = FieldType.Text)
     private String text;
 
     public CommentElastic(Comment comment){
-        this.id = comment.getId();
         this.text = comment.getText();
     }
 
